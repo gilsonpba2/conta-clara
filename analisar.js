@@ -72,48 +72,76 @@ OPORTUNIDADES DE ECONOMIA (o que o cliente pode fazer para pagar menos; inclua t
 Use economia_estimada_mensal_reais = null quando não der para estimar com os dados da fatura. Nunca prometa economia; é estimativa.
 
 FORMATO DA RESPOSTA
-Responda APENAS com um JSON válido, sem nenhum texto antes ou depois, neste formato:
-{
-  "legivel": true,
-  "motivo_ilegivel": null,
-  "distribuidora": "texto ou null",
-  "unidade_consumidora": "número da UC ou null",
-  "mes_referencia": "ex.: 08/2026 ou null",
-  "mes_referencia_iso": "ex.: 2026-08 ou null",
-  "vencimento": "dd/mm/aaaa ou null",
-  "valor_total": 0.0,
-  "consumo_kwh": 0,
-  "classe": "ex.: Residencial, Comercial ou null",
-  "tipo_ligacao": "Monofásico, Bifásico, Trifásico, Grupo A ou null",
-  "resumo": "2 a 4 frases explicando a conta como se fosse para um vizinho",
-  "itens": [
-    { "descricao": "nome do item como aparece na fatura", "valor": 0.0, "explicacao": "o que é, em uma ou duas frases" }
-  ],
-  "geracao_distribuida": {
-    "possui": false,
-    "modalidade": "Autoconsumo local, Autoconsumo remoto, Geração compartilhada, Unidade beneficiária ou null",
-    "energia_injetada_kwh": null,
-    "creditos_recebidos_kwh": null,
-    "energia_compensada_kwh": null,
-    "valor_creditos_reais": null,
-    "saldo_creditos_kwh": null,
-    "creditos_a_expirar_kwh": null,
-    "explicacao": "texto ou null",
-    "historico": [ { "mes_iso": "AAAA-MM", "injetada_kwh": null, "compensada_kwh": null, "saldo_kwh": null } ]
-  },
-  "historico": [ { "mes": "MMM/AA", "mes_iso": "AAAA-MM", "consumo_kwh": 0 } ],
-  "alertas": [ "texto curto" ],
-  "oportunidades": [
-    { "tipo": "gd | creditos | defeito | erro_fatura | multa | leitura | demanda | reativo | mercado_livre | habito | outro",
-      "titulo": "frase curta", "descricao": "o que é e o que fazer, em 2 ou 3 frases",
-      "economia_estimada_mensal_reais": null, "prioridade": "alta | media | baixa" }
-  ]
-}
-Em "valor_creditos_reais" coloque o valor em reais abatido pelos créditos de energia injetada/compensada neste mês (soma dos itens de energia injetada, em positivo), se aparecer na fatura.
-Em "geracao_distribuida.historico" inclua os meses que a fatura mostrar com dados de energia injetada, compensada ou saldo (deixe vazio se não houver).
-Se a imagem não for uma fatura de energia ou estiver ilegível, responda com "legivel": false, explique o motivo em "motivo_ilegivel" e deixe os demais campos null ou vazios.
+Registre o resultado chamando a ferramenta "registrar_analise". Não escreva texto fora dela.
+- Números sempre no formato numérico com ponto decimal e sem separador de milhar: 62194.16 (nunca "62.194,16").
+- "valor_creditos_reais": valor em reais abatido pelos créditos de energia injetada/compensada neste mês (soma dos itens de injeção, em positivo), se aparecer na fatura.
+- "geracao_distribuida.historico": os meses que a fatura mostrar com energia injetada, compensada ou saldo (vazio se não houver).
+- Se a imagem não for uma fatura de energia ou estiver ilegível: "legivel" = false, explique em "motivo_ilegivel" e deixe o resto vazio.
 `;
 // ===========================================================================
+
+// Estrutura obrigatória da resposta. A IA preenche via "ferramenta", o que garante dados bem formados.
+const N = { type: ["number", "null"] };
+const T = { type: ["string", "null"] };
+const FERRAMENTA = {
+  name: "registrar_analise",
+  description: "Registra a análise completa da fatura de energia.",
+  input_schema: {
+    type: "object",
+    required: ["legivel", "resumo", "itens", "geracao_distribuida", "historico", "alertas", "oportunidades"],
+    properties: {
+      legivel: { type: "boolean" },
+      motivo_ilegivel: T,
+      distribuidora: T,
+      unidade_consumidora: { ...T, description: "Número da UC" },
+      mes_referencia: { ...T, description: "ex.: 08/2026" },
+      mes_referencia_iso: { ...T, description: "ex.: 2026-08" },
+      vencimento: { ...T, description: "dd/mm/aaaa" },
+      valor_total: N,
+      consumo_kwh: N,
+      classe: T,
+      tipo_ligacao: { ...T, description: "Monofásico, Bifásico, Trifásico ou Grupo A (informe o subgrupo e a modalidade, ex.: A4 verde)" },
+      resumo: { type: "string", description: "2 a 4 frases explicando a conta como se fosse para um vizinho" },
+      itens: {
+        type: "array", maxItems: 14,
+        items: { type: "object", required: ["descricao", "valor", "explicacao"],
+          properties: { descricao: { type: "string" }, valor: N, explicacao: { type: "string" } } },
+      },
+      geracao_distribuida: {
+        type: "object", required: ["possui"],
+        properties: {
+          possui: { type: "boolean" },
+          modalidade: { ...T, description: "Autoconsumo local, Autoconsumo remoto, Geração compartilhada, Unidade beneficiária; cite GD I ou GD II se aparecer" },
+          energia_injetada_kwh: N, creditos_recebidos_kwh: N, energia_compensada_kwh: N,
+          valor_creditos_reais: N, saldo_creditos_kwh: N, creditos_a_expirar_kwh: N,
+          explicacao: T,
+          historico: {
+            type: "array",
+            items: { type: "object", required: ["mes_iso"],
+              properties: { mes_iso: { type: "string", description: "AAAA-MM" }, injetada_kwh: N, compensada_kwh: N, saldo_kwh: N } },
+          },
+        },
+      },
+      historico: {
+        type: "array",
+        items: { type: "object", required: ["mes", "consumo_kwh"],
+          properties: { mes: { type: "string", description: "MMM/AA" }, mes_iso: { type: "string", description: "AAAA-MM" }, consumo_kwh: N } },
+      },
+      alertas: { type: "array", maxItems: 6, items: { type: "string" } },
+      oportunidades: {
+        type: "array", maxItems: 7,
+        items: { type: "object", required: ["tipo", "titulo", "descricao", "prioridade"],
+          properties: {
+            tipo: { type: "string", enum: ["gd", "creditos", "defeito", "erro_fatura", "multa", "leitura", "demanda", "reativo", "ponta", "irrigante", "mercado_livre", "habito", "outro"] },
+            titulo: { type: "string" },
+            descricao: { type: "string", description: "o que é e o que fazer, em 2 ou 3 frases" },
+            economia_estimada_mensal_reais: N,
+            prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+          } },
+      },
+    },
+  },
+};
 
 const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
@@ -150,9 +178,11 @@ export default async function handler(req, res) {
       headers: { "x-api-key": chave, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 8000,
+        max_tokens: 16000,
         system: INSTRUCOES,
-        messages: [{ role: "user", content: [blocoArquivo, { type: "text", text: "Analise esta fatura de energia e responda no formato JSON pedido." }] }],
+        tools: [FERRAMENTA],
+        tool_choice: { type: "tool", name: FERRAMENTA.name },
+        messages: [{ role: "user", content: [blocoArquivo, { type: "text", text: "Analise esta fatura de energia e registre o resultado com a ferramenta registrar_analise." }] }],
       }),
     });
 
@@ -162,13 +192,19 @@ export default async function handler(req, res) {
     }
 
     const dados = await resposta.json();
-    const texto = (dados.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
-    const analise = extrairJson(texto);
-
+    const blocoFerramenta = (dados.content || []).find((b) => b.type === "tool_use");
+    let analise = blocoFerramenta ? blocoFerramenta.input : null;
     if (!analise) {
-      console.error("Resposta sem JSON válido:", texto);
-      return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Nenhum crédito foi usado. Tente outra foto." });
+      // Plano B: se vier como texto, tenta extrair o JSON
+      const texto = (dados.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+      analise = extrairJson(texto);
     }
+
+    if (!analise || typeof analise !== "object" || dados.stop_reason === "max_tokens") {
+      console.error("Resposta incompleta. stop_reason:", dados.stop_reason, "uso:", JSON.stringify(dados.usage), "conteúdo:", JSON.stringify(dados.content).slice(0, 3000));
+      return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Nenhum crédito foi usado. Tente de novo." });
+    }
+    analise = normalizarNumeros(analise);
 
     if (analise.legivel === false) {
       return res.status(200).json({ ...analise, creditos: restante });
@@ -189,6 +225,27 @@ export default async function handler(req, res) {
     console.error(e);
     return res.status(500).json({ erro: "Erro inesperado no servidor. Nenhum crédito foi usado." });
   }
+}
+
+// Converte números que vierem como texto brasileiro ("62.194,16", "R$ 1.030,37") em número de verdade
+const CAMPOS_NUMERICOS = /(_kwh|_reais|^valor|^valor_total|^consumo_kwh)$/;
+function paraNumero(v) {
+  if (typeof v !== "string") return v;
+  let t = v.replace(/[R$\s]/g, "");
+  if (!/^-?[\d.,]+$/.test(t)) return v;
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, ""); // "1.340" = mil trezentos e quarenta
+  const n = Number(t);
+  return isFinite(n) ? n : v;
+}
+function normalizarNumeros(o) {
+  if (Array.isArray(o)) return o.map(normalizarNumeros);
+  if (o && typeof o === "object") {
+    const r = {};
+    for (const [k, v] of Object.entries(o)) r[k] = CAMPOS_NUMERICOS.test(k) ? paraNumero(v) : normalizarNumeros(v);
+    return r;
+  }
+  return o;
 }
 
 function extrairJson(texto) {
