@@ -179,6 +179,57 @@
   .rotulos div { flex: 1; text-align: center; font-size: .68rem; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 4px; }
   .dica-grafico { position: absolute; pointer-events: none; background: var(--texto); color: #fff; font-size: .8rem; padding: 6px 9px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); display: none; }
 
+  /* Grupo A */
+  :root { --serie-p: #1F4FB8; --serie-fp: #5FA3F0; --serie-hr: #C98F00; --linha-ref: #14203A; }
+  .sub-titulo { font-size: .95rem; margin: 20px 0 8px; color: var(--marinho); font-family: Nunito, sans-serif; font-weight: 800; }
+  .sub-titulo:first-of-type { margin-top: 4px; }
+  .kpi .det { font-size: .75rem; color: var(--suave); margin-top: 2px; }
+  .kpi.total { background: var(--marinho); }
+  .kpi.total .r, .kpi.total .det { color: #C9D6EE; }
+  .kpi.total .v { color: #fff; }
+  .nota { font-size: .85rem; color: var(--suave); margin: 10px 0 0; }
+  .selo { display: flex; gap: 10px; align-items: flex-start; border-radius: 12px; padding: 12px 14px; margin-top: 14px; font-size: .95rem; }
+  .selo .ic { font-size: 1.2rem; line-height: 1.3; }
+  .selo strong { display: block; }
+  .selo.ok { background: var(--verde-fundo); color: #125C33; }
+  .selo.info { background: var(--marinho-claro); color: var(--marinho); }
+  .selo.alerta { background: var(--alerta-fundo); color: var(--alerta); border: 1px solid var(--alerta-borda); }
+  .medidor { position: relative; height: 12px; background: var(--marinho-claro); border-radius: 6px; margin: 10px 0 22px; }
+  .medidor .enc { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: var(--marinho); }
+  .medidor .enc.passou { background: var(--alerta); }
+  .medidor .marca { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--linha-ref); }
+  .medidor .marca span { position: absolute; top: 18px; right: 4px; font-size: .7rem; color: var(--suave); white-space: nowrap; }
+
+  .legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .82rem; color: var(--suave); margin: 4px 0 8px; }
+  .legenda i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+  .legenda .tracejada { width: 18px; height: 0; border-top: 2px dashed var(--linha-ref); border-radius: 0; vertical-align: 3px; }
+  .legenda .pontilhada { width: 18px; height: 0; border-top: 2px dotted var(--alerta); border-radius: 0; vertical-align: 3px; }
+  .g2 { position: relative; height: 190px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid var(--borda); margin-right: 64px; }
+  .g2 .barra { flex: 1; height: 100%; display: flex; flex-direction: row; justify-content: center; align-items: flex-end; gap: 2px; min-width: 0; position: relative; }
+  .g2 .pilha { width: 72%; max-width: 38px; display: flex; flex-direction: column-reverse; gap: 2px; }
+  .g2 .pilha .seg:last-child { border-radius: 4px 4px 0 0; }
+  .g2 .col { flex: 1; max-width: 18px; border-radius: 4px 4px 0 0; }
+  .g2 .col.unica { flex: none; width: 72%; max-width: 38px; }
+  .g2 .aviso { position: absolute; font-size: .8rem; transform: translateY(-100%); line-height: 1; }
+  .g2 .ref { position: absolute; left: 0; right: -64px; height: 0; pointer-events: none; }
+  .g2 .ref.contratada { border-top: 2px dashed var(--linha-ref); }
+  .g2 .ref.tolerancia { border-top: 2px dotted var(--alerta); }
+  .g2 .ref.tolerancia span { transform: translateY(calc(-100% - 3px)); color: var(--alerta); }
+  .g2 .ref span { position: absolute; right: 0; transform: translateY(2px); background: #fff; font-size: .7rem; color: var(--texto); padding: 0 2px; white-space: nowrap; }
+  .g2-rotulos { display: flex; gap: 4px; margin-right: 64px; }
+  .g2-rotulos div { flex: 1; text-align: center; font-size: .68rem; line-height: 1.2; color: var(--suave); white-space: nowrap; overflow: hidden; padding-top: 4px; min-width: 0; }
+  .alternar { display: inline-flex; background: var(--marinho-claro); border-radius: 8px; padding: 3px; margin-left: auto; }
+  .alternar button { border: 0; background: transparent; font: inherit; font-size: .8rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer; color: var(--marinho); }
+  .alternar button.ativa { background: #fff; }
+  .cab-grafico { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 20px 0 4px; }
+  .cab-grafico .sub-titulo { margin: 0; }
+  .titulo-posto { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 18px 0 6px; font-size: .92rem; }
+  .titulo-posto i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; align-self: center; }
+  .titulo-posto span { color: var(--suave); font-size: .85rem; }
+  .titulo-posto b { color: var(--texto); }
+  details.tabela-dados { margin-top: 12px; }
+  details.tabela-dados summary { cursor: pointer; font-size: .85rem; color: var(--marinho); font-weight: 600; }
+
   table { width: 100%; border-collapse: collapse; font-size: .9rem; }
   th, td { text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--borda); white-space: nowrap; font-variant-numeric: tabular-nums; }
   th:first-child, td:first-child { text-align: left; }
@@ -196,6 +247,10 @@
     .autor { grid-template-columns: 1fr; text-align: center; justify-items: center; }
     .topo img { height: 38px; }
     .esconde-celular { display: none; }
+    .g2, .g2-rotulos { gap: 2px; margin-right: 44px; }
+    .g2 .ref { right: -44px; }
+    .g2-rotulos div { font-size: .58rem; overflow: visible; }
+    .g2 .pilha, .g2 .col.unica { width: 80%; }
   }
 </style>
 </head>
@@ -603,13 +658,214 @@
     const b = e.target.closest(".barra[data-dica]");
     if (!b) { dica.style.display = "none"; return; }
     const r = b.getBoundingClientRect();
+    const topo = Math.min(...[...b.querySelectorAll(".b, .pilha, .col")].map((el) => el.getBoundingClientRect().top), r.bottom);
     dica.textContent = b.dataset.dica; dica.style.display = "block";
     dica.style.left = r.left + r.width / 2 + window.scrollX + "px";
-    dica.style.top = r.top + window.scrollY + b.querySelector(".b").offsetTop + "px";
+    dica.style.top = topo + window.scrollY - 4 + "px";
     dica.style.position = "absolute";
   }
   document.addEventListener("mouseover", mostrarDica);
   document.addEventListener("touchstart", mostrarDica, { passive: true });
+
+  // ---------- Grupo A ----------
+  const fmt = (v, casas) => ehNum(v) ? v.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas }) : "—";
+  const kw = (v) => ehNum(v) ? fmt(v, v % 1 ? 1 : 0) + " kW" : "—";
+  const tarifaTxt = (v) => ehNum(v) ? "R$ " + fmt(v, 4) : "—";
+  const CORES = { P: "var(--serie-p)", FP: "var(--serie-fp)", HR: "var(--serie-hr)" };
+  const NOMES = { P: "Ponta", FP: "Fora ponta", HR: "Reservado" };
+
+  // Gráfico de barras: séries empilhadas ou lado a lado, com linhas de referência
+  function grafico2({ rotulos, series, empilhado, linhas = [], marcar = [], formatar, altura, topoFixo }) {
+    const n = rotulos.length;
+    const totais = rotulos.map((_, i) => empilhado
+      ? series.reduce((s, se) => s + (se.valores[i] || 0), 0)
+      : Math.max(...series.map((se) => se.valores[i] || 0)));
+    const topo = topoFixo || Math.max(...totais, ...linhas.map((l) => l.valor || 0), 1) * 1.12;
+    const pct = (v) => Math.max(0, (v / topo) * 100);
+    let h = "";
+    if (series.length > 1 || linhas.length) {
+      h += '<div class="legenda">' + (series.length > 1 ? series.map((s) => '<span><i style="background:' + s.cor + '"></i>' + s.nome + "</span>").join("") : "") +
+        linhas.map((l) => '<span><i class="' + (l.tipo === "tolerancia" ? "pontilhada" : "tracejada") + '"></i>' + escapar(l.legenda) + "</span>").join("") + "</div>";
+    }
+    h += '<div class="g2"' + (altura ? ' style="height:' + altura + 'px"' : "") + ">";
+    for (let i = 0; i < n; i++) {
+      const dicaTxt = rotulos[i] + " — " + series.map((s) => (series.length > 1 ? s.nome + ": " : "") + formatar(s.valores[i])).join(" · ") +
+        (empilhado && series.length > 1 ? " · Total: " + formatar(totais[i]) : "");
+      h += '<div class="barra" data-dica="' + escapar(dicaTxt) + '">';
+      if (empilhado) {
+        h += '<div class="pilha" style="height:' + pct(totais[i]) + '%">' + series.map((s) => {
+          const v = s.valores[i] || 0;
+          return v > 0 ? '<div class="seg" style="flex:' + v + ' 1 0; background:' + s.cor + '"></div>' : "";
+        }).join("") + "</div>";
+      } else {
+        h += series.map((s) => '<div class="col' + (series.length === 1 ? " unica" : "") + '" style="height:' + pct(s.valores[i] || 0) + "%; background:" +
+          (marcar[i] && series.length === 1 ? "var(--alerta)" : s.cor) + '"></div>').join("");
+      }
+      if (marcar[i]) h += '<span class="aviso" style="bottom:' + pct(totais[i]) + '%" title="Passou da tolerância">⚠️</span>';
+      h += "</div>";
+    }
+    linhas.forEach((l) => {
+      if (ehNum(l.valor)) h += '<div class="ref ' + l.tipo + '" style="bottom:' + pct(l.valor) + '%"><span>' + escapar(l.rotulo) + "</span></div>";
+    });
+    h += '</div><div class="g2-rotulos">' + rotulos.map((r) => "<div>" + escapar(r).replace("/", "<br>") + "</div>").join("") + "</div>";
+    return h;
+  }
+
+  // Gráficos de demanda e de energia por posto (análise e histórico usam o mesmo)
+  let contadorGraficos = 0;
+  function graficosGrupoA(meses, info) {
+    meses = meses.slice().sort((a, b) => a.mes.localeCompare(b.mes)).slice(-12);
+    if (meses.length < 2) return "";
+    const rot = meses.map((m) => mesCurto(m.mes));
+    const tol = 1.05;
+    let h = "";
+
+    // Demanda
+    const temDem = meses.some((m) => ehNum(m.demanda_p_kw) || ehNum(m.demanda_fp_kw));
+    if (temDem) {
+      h += '<div class="cab-grafico"><h3 class="sub-titulo">Demanda medida nos últimos ' + meses.length + " meses (kW)</h3></div>";
+      const fmtKw = (v) => ehNum(v) ? fmt(v, 1) + " kW" : "—";
+      const linhasPara = (c, nome) => ehNum(c) ? [
+        { valor: c, rotulo: fmt(c, 0) + " kW", legenda: "Contratada" + (nome ? " " + nome : "") + " (" + fmt(c, 0) + " kW)", tipo: "contratada" },
+        { valor: c * tol, rotulo: "+5%", legenda: "Limite de tolerância (+5%)", tipo: "tolerancia" },
+      ] : [];
+      if (info.azul) {
+        [["P", "ponta", info.contratada_ponta_kw, "demanda_p_kw"], ["FP", "fora ponta", info.contratada_kw, "demanda_fp_kw"]].forEach(([posto, nome, c, campo]) => {
+          const vals = meses.map((m) => m[campo] ?? null);
+          if (!vals.some(ehNum)) return;
+          h += '<p class="nota" style="margin:6px 0 2px">' + NOMES[posto] + "</p>" + grafico2({
+            rotulos: rot, series: [{ nome: NOMES[posto], cor: "var(--barra)", valores: vals }], linhas: linhasPara(c, nome),
+            marcar: vals.map((v) => ehNum(c) && v > c * tol), formatar: fmtKw,
+          });
+        });
+      } else {
+        const vals = meses.map((m) => Math.max(m.demanda_p_kw || 0, m.demanda_fp_kw || 0) || null);
+        const c = info.contratada_kw;
+        h += grafico2({ rotulos: rot, series: [{ nome: "Demanda medida", cor: "var(--barra)", valores: vals }], linhas: linhasPara(c),
+          marcar: vals.map((v) => ehNum(c) && v > c * tol), formatar: fmtKw });
+        h += '<p class="nota">Na tarifa verde vale a maior demanda do mês, entre ponta e fora ponta. ⚠️ marca os meses acima do limite.</p>';
+      }
+    }
+
+    // Energia por posto
+    const temEn = meses.some((m) => ehNum(m.consumo_p_kwh) || ehNum(m.consumo_fp_kwh) || ehNum(m.consumo_hr_kwh));
+    if (temEn) {
+      const postos = ["FP", "HR", "P"].filter((p) => meses.some((m) => ehNum(m["consumo_" + p.toLowerCase() + "_kwh"])));
+      const tarifa = Object.fromEntries((info.tarifas || []).map((t) => [t.posto, t.total_kwh]));
+      const podeReais = postos.every((p) => ehNum(tarifa[p]));
+      const id = "gEn" + (++contadorGraficos);
+      const fmtKwh = (v) => fmt(v || 0, 0) + " kWh";
+      const fmtR = (v) => reais(Math.round(v || 0));
+      // Ordem de leitura: ponta (mais cara), fora ponta, reservado
+      const ordem = ["P", "FP", "HR"].filter((p) => postos.includes(p));
+      const maiorReais = Math.max(...ordem.flatMap((p) => meses.map((m) => (m["consumo_" + p.toLowerCase() + "_kwh"] || 0) * (tarifa[p] || 0))), 1) * 1.12;
+      const tresGraficos = (emReais) => ordem.map((p) => {
+        const kwhs = meses.map((m) => m["consumo_" + p.toLowerCase() + "_kwh"] || 0);
+        const vals = emReais ? kwhs.map((v) => v * tarifa[p]) : kwhs;
+        const f = emReais ? fmtR : fmtKwh;
+        const ultimo = vals[vals.length - 1];
+        const comDado = vals.filter((v) => v > 0);
+        const media = comDado.length ? comDado.reduce((s, v) => s + v, 0) / comDado.length : 0;
+        return '<p class="titulo-posto"><i style="background:' + CORES[p] + '"></i><strong>' + (p === "HR" ? "Horário reservado" : NOMES[p]) + "</strong>" +
+          "<span>" + rot[rot.length - 1] + ": <b>" + f(ultimo) + "</b> · média: " + f(media) + "</span></p>" +
+          grafico2({ rotulos: rot, series: [{ nome: NOMES[p], cor: CORES[p], valores: vals }], formatar: f, altura: 130, topoFixo: emReais ? maiorReais : null });
+      }).join("");
+      h += '<div class="cab-grafico"><h3 class="sub-titulo">Energia por horário nos últimos ' + meses.length + " meses</h3>" +
+        (podeReais ? '<div class="alternar" data-alternar="' + id + '"><button class="ativa" data-modo="kwh">kWh</button><button data-modo="reais">R$</button></div>' : "") + "</div>";
+      h += '<div id="' + id + '-kwh">' + tresGraficos(false) + '<p class="nota">Cada gráfico tem a própria escala.</p></div>';
+      if (podeReais) {
+        h += '<div id="' + id + '-reais" hidden>' + tresGraficos(true) +
+          '<p class="nota">Em reais: energia de cada mês × tarifa atual de cada horário (TUSD + TE com tributos). É uma estimativa para os meses anteriores e não inclui bandeira. Os três usam a mesma escala, para comparar quanto cada horário pesa na conta.</p></div>';
+      }
+    }
+
+    // Tabela com os números
+    h += '<details class="tabela-dados"><summary>Ver dados em tabela</summary><div class="rolagem"><table><thead><tr><th>Mês</th><th>Dem. ponta</th><th>Dem. fora ponta</th><th>Ponta</th><th>Fora ponta</th><th>Reservado</th></tr></thead><tbody>' +
+      meses.slice().reverse().map((m) => "<tr><td>" + mesCurto(m.mes) + "</td><td>" + kw(m.demanda_p_kw) + "</td><td>" + kw(m.demanda_fp_kw) + "</td><td>" +
+        kwh(m.consumo_p_kwh) + "</td><td>" + kwh(m.consumo_fp_kwh) + "</td><td>" + kwh(m.consumo_hr_kwh) + "</td></tr>").join("") +
+      "</tbody></table></div></details>";
+    return h;
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-alternar] button");
+    if (!b) return;
+    const caixa = b.parentElement, id = caixa.dataset.alternar;
+    caixa.querySelectorAll("button").forEach((x) => x.classList.toggle("ativa", x === b));
+    $(id + "-kwh").hidden = b.dataset.modo !== "kwh";
+    $(id + "-reais").hidden = b.dataset.modo !== "reais";
+  });
+
+  function blocoGrupoA(d) {
+    const g = d.grupo_a;
+    if (!g || !g.calculado) return "";
+    const c = g.calculado, dem = g.demanda || {};
+    let h = '<section class="cartao"><h2>📋 Tarifas e demanda' + (g.subgrupo || g.modalidade ? ' <small style="font-weight:600; color:var(--suave); font-size:.85rem">· ' +
+      escapar([g.subgrupo, g.modalidade ? "tarifa " + g.modalidade : ""].filter(Boolean).join(" ")) + "</small>" : "") + "</h2>";
+
+    // Tarifas
+    if (c.tarifas && c.tarifas.length) {
+      h += '<h3 class="sub-titulo">Quanto custa cada kWh (com impostos)</h3><div class="kpis">' + c.tarifas.map((t) =>
+        '<div class="kpi"><div class="r"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + CORES[t.posto] + ';margin-right:6px"></i>' +
+        t.nome + '</div><div class="v">' + tarifaTxt(t.total_kwh) + '</div><div class="det">TUSD ' + fmt(t.tusd_kwh, 4) + " + TE " + fmt(t.te_kwh, 4) + "</div></div>").join("") + "</div>";
+      const hr = c.tarifas.find((t) => t.posto === "HR"), fp = c.tarifas.find((t) => t.posto === "FP");
+      if (hr && fp && Math.abs(hr.total_kwh - fp.total_kwh) < 0.0001) {
+        h += '<p class="nota">O horário reservado está com a mesma tarifa do fora ponta, ou seja, sem desconto aplicado.</p>';
+      }
+      const b = g.bandeira;
+      if (b && (ehNum(b.adicional_kwh) || ehNum(b.valor_reais)) && (b.adicional_kwh || b.valor_reais)) {
+        h += '<p class="nota">Bandeira ' + escapar((b.cor || "").toLowerCase()) + ": + " + tarifaTxt(b.adicional_kwh) + " por kWh em todos os horários" +
+          (ehNum(b.valor_reais) ? " (" + reais(b.valor_reais) + " no mês)" : "") + ". Não está somada nas tarifas acima.</p>";
+      }
+    }
+
+    // Demanda
+    const temDemanda = ehNum(dem.contratada_kw) || ehNum(dem.faturada_kw) || ehNum(dem.medida_fp_kw);
+    if (temDemanda) {
+      const lida = c.azul ? null : (c.situacoes[0] ? c.situacoes[0].medida_kw : dem.faturada_kw);
+      h += '<h3 class="sub-titulo">Demanda</h3><div class="kpis">';
+      if (c.azul) {
+        h += '<div class="kpi"><div class="r">Contratada ponta / fora ponta</div><div class="v">' + kw(dem.contratada_ponta_kw) + " / " + kw(dem.contratada_kw) + "</div></div>" +
+          '<div class="kpi"><div class="r">Lida ponta / fora ponta</div><div class="v">' + kw(dem.medida_p_kw) + " / " + kw(dem.medida_fp_kw) + "</div></div>" +
+          '<div class="kpi"><div class="r">Valor por kW ponta / fora ponta</div><div class="v">' + tarifaTxt(dem.preco_ponta_kw) + " / " + tarifaTxt(dem.preco_kw) + "</div></div>";
+      } else {
+        h += '<div class="kpi"><div class="r">Contratada</div><div class="v">' + kw(dem.contratada_kw) + "</div></div>" +
+          '<div class="kpi"><div class="r">Lida (maior do mês)</div><div class="v">' + kw(lida) + '</div><div class="det">Ponta ' + kw(dem.medida_p_kw) + " · Fora ponta " + kw(dem.medida_fp_kw) + "</div></div>" +
+          '<div class="kpi"><div class="r">Valor por kW</div><div class="v">' + tarifaTxt(dem.preco_kw) + "</div></div>";
+      }
+      h += '<div class="kpi"><div class="r">Ultrapassagem</div><div class="v">' + kw(dem.ultrapassagem_kw || 0) + '</div><div class="det">' + reais(dem.valor_ultrapassagem_reais || 0) + "</div></div>" +
+        '<div class="kpi total"><div class="r">Total pago de demanda</div><div class="v">' + reais(c.demanda_total_reais) + '</div><div class="det">Demanda ' +
+        reais(dem.valor_demanda_reais) + " + ultrapassagem " + reais(dem.valor_ultrapassagem_reais || 0) + "</div></div></div>";
+
+      if (!c.azul && ehNum(dem.faturada_kw) && ehNum(dem.contratada_kw) && dem.faturada_kw > dem.contratada_kw) {
+        h += '<p class="nota">Foram cobrados ' + kw(dem.faturada_kw) + ", e não os " + kw(dem.contratada_kw) + " contratados, porque a distribuidora cobra o maior valor entre a contratada e a lida.</p>";
+      }
+
+      // Situação (calculada pelo sistema)
+      for (const s of c.situacoes || []) {
+        const escala = Math.max(s.percentual, 110) + 5;
+        const pos = (p) => (p / escala) * 100;
+        const nome = s.posto ? " na " + s.posto.toLowerCase() : "";
+        const txt = {
+          tolerancia: ["ok", "✅", "Dentro da tolerância" + nome, "A demanda lida ficou em " + fmt(s.percentual, 1) + "% da contratada. Passou do contratado, mas está dentro do limite de 5%, então não houve multa."],
+          abaixo: ["info", "ℹ️", "Abaixo da contratada" + nome, "Usou " + fmt(s.percentual, 1) + "% da demanda contratada. Você paga pelos " + kw(s.contratada_kw) + " contratados mesmo sem usar " + kw(s.sem_uso_kw) + "."],
+          ultrapassou: ["alerta", "⚠️", "Ultrapassou a tolerância" + nome, "A demanda lida ficou em " + fmt(s.percentual, 1) + "% da contratada, acima do limite de 105%. Há multa de ultrapassagem sobre " + kw(s.excedente_kw) + "."],
+        }[s.situacao];
+        h += '<div class="selo ' + txt[0] + '"><span class="ic">' + txt[1] + "</span><div><strong>" + txt[2] + "</strong>" + txt[3] + "</div></div>" +
+          '<div class="medidor" role="img" aria-label="Demanda lida: ' + fmt(s.percentual, 1) + '% da contratada"><div class="enc' + (s.situacao === "ultrapassou" ? " passou" : "") +
+          '" style="width:' + Math.min(100, pos(s.percentual)) + '%"></div><div class="marca" style="left:' + pos(100) + '%"><span>100%</span></div><div class="marca" style="left:' +
+          pos(105) + '%; background:var(--alerta)"><span style="right:auto; left:4px">105%</span></div></div>';
+      }
+      const mu = c.meses_ultrapassados || [];
+      if (mu.length) {
+        h += '<p class="nota">⚠️ Pelo histórico da fatura, a demanda passou da tolerância em ' + mu.length + (mu.length === 1 ? " mês" : " meses") + ": " + mu.map(mesCurto).join(", ") + ".</p>";
+      }
+    }
+
+    // Gráficos
+    const meses = (g.historico || []).filter((m) => m.mes_iso).map((m) => ({ ...m, mes: m.mes_iso }));
+    h += graficosGrupoA(meses, { azul: c.azul, contratada_kw: dem.contratada_kw, contratada_ponta_kw: dem.contratada_ponta_kw, tarifas: c.tarifas });
+    return h + "</section>";
+  }
 
   // ---------- Resultado da análise ----------
   function mostrarResultado(d, destino) {
@@ -622,6 +878,7 @@
     if (campos.length) h += '<div class="dados">' + campos.map(([r, v]) => "<div><span>" + r + "</span>" + escapar(v) + "</div>").join("") + "</div>";
     if (d.resumo) h += '<p class="resumo">' + escapar(d.resumo) + "</p>";
     h += "</section>";
+    h += blocoGrupoA(d);
 
     const ops = Array.isArray(d.oportunidades) ? d.oportunidades : [];
     if (ops.length) {
@@ -659,7 +916,7 @@
     }
 
     const hist = (Array.isArray(d.historico) ? d.historico : []).filter((x) => ehNum(x.consumo_kwh));
-    if (hist.length > 1) {
+    if (hist.length > 1 && !(d.grupo_a && d.grupo_a.calculado && (d.grupo_a.historico || []).length > 1)) {
       // Do mais antigo para o mais recente, da esquerda para a direita
       const ordenado = hist.slice().sort((a, b) => String(a.mes_iso || "").localeCompare(String(b.mes_iso || "")));
       const pontos = (hist[0].mes_iso ? ordenado : hist.slice().reverse()).map((x) => ({ r: x.mes_iso ? mesCurto(x.mes_iso) : x.mes, v: x.consumo_kwh }));
@@ -689,6 +946,12 @@
     let h = "";
 
     for (const u of unidades) {
+      if (u.grupo_a && u.grupo_a.meses && u.grupo_a.meses.length > 1) {
+        const ga = u.grupo_a;
+        h += '<section class="cartao"><h2>📊 Demanda e energia · ' + escapar(u.uc === "sem-uc" ? "Unidade sem número identificado" : "Unidade " + u.uc) +
+          (ga.subgrupo || ga.modalidade ? ' <small style="font-weight:600; color:var(--suave); font-size:.85rem">· ' + escapar([ga.subgrupo, ga.modalidade ? "tarifa " + ga.modalidade : ""].filter(Boolean).join(" ")) + "</small>" : "") +
+          "</h2>" + graficosGrupoA(ga.meses, ga) + "</section>";
+      }
       const meses = u.meses.slice().sort((a, b) => a.mes.localeCompare(b.mes)); // antigo → recente
       const temGd = meses.some((m) => ehNum(m.injetada_kwh) || ehNum(m.recebidos_kwh) || ehNum(m.saldo_kwh));
       if (!temGd) continue;
