@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conta Clara — entenda sua conta de luz</title>
+<meta name="description" content="Tire uma foto da sua conta de luz e entenda cada item que você paga, seus créditos de energia solar e como pagar menos.">
+<meta name="theme-color" content="#002D7A">
+<link rel="icon" type="image/png" href="/icone.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --marinho: #002D7A;
+    --marinho-escuro: #001E52;
+    --marinho-claro: #E6ECF7;
+    --lima: #EBFF00;
+    --lima-suave: #F8FFC2;
+    --fundo: #F3F6FB;
+    --cartao: #FFFFFF;
+    --texto: #14203A;
+    --suave: #56627A;
+    --borda: #DDE3EE;
+    --barra: #7F9CCB;
+    --verde: #1B7F46;
+    --verde-fundo: #E7F5EC;
+    --alerta: #8A5A00;
+    --alerta-fundo: #FFF6DB;
+    --alerta-borda: #F0CF6A;
+    --erro: #B3261E;
+    --erro-fundo: #FDECEA;
+    --raio: 14px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--fundo); color: var(--texto);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.55;
+  }
+  h1, h2, h3, .titulo { font-family: Nunito, Inter, system-ui, sans-serif; letter-spacing: -0.01em; }
+  a { color: var(--marinho); }
+  [hidden] { display: none !important; }
+
+  /* Barra superior */
+  .topo { background: #fff; border-bottom: 1px solid var(--borda); position: sticky; top: 0; z-index: 10; }
+  .topo .dentro { max-width: 1040px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .topo img { height: 44px; display: block; cursor: pointer; }
+  .topo .acoes { display: flex; align-items: center; gap: 8px; }
+  .saldo-chip { background: var(--marinho-claro); color: var(--marinho); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: .88rem; white-space: nowrap; }
+
+  .botao {
+    appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 600; text-decoration: none;
+    padding: 12px 20px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .primario { background: var(--marinho); color: #fff; }
+  .primario:hover { background: var(--marinho-escuro); }
+  .destaque { background: var(--lima); color: var(--marinho-escuro); }
+  .destaque:hover { filter: brightness(.95); }
+  .secundario { background: var(--marinho-claro); color: var(--marinho); }
+  .fantasma { background: transparent; color: var(--marinho); padding: 8px 12px; }
+  .fantasma:hover { background: var(--marinho-claro); }
+  .botao:disabled { opacity: .45; cursor: default; }
+  .pequeno { padding: 8px 14px; font-size: .9rem; }
+  .largo { width: 100%; }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  .estreito { max-width: 720px; margin: 0 auto; }
+
+  /* Página inicial */
+  .hero { background: var(--marinho); color: #fff; }
+  .hero .dentro { max-width: 1040px; margin: 0 auto; padding: 56px 16px 64px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.1; margin: 0 0 16px; font-weight: 900; }
+  .hero h1 em { font-style: normal; color: var(--lima); }
+  .hero p { font-size: 1.1rem; opacity: .9; margin: 0 0 28px; max-width: 34em; }
+  .hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero .ctas .secundario { background: rgba(255,255,255,.12); color: #fff; }
+  .hero .obs { font-size: .85rem; opacity: .75; margin-top: 14px; }
+  .mock { background: #fff; color: var(--texto); border-radius: 18px; padding: 18px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .mock .linha { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--borda); font-size: .9rem; }
+  .mock .linha:first-of-type { border-top: 0; }
+  .mock .linha span:last-child { font-weight: 600; }
+  .mock .tag { display: inline-block; background: var(--lima); color: var(--marinho-escuro); font-weight: 700; font-size: .75rem; border-radius: 6px; padding: 2px 8px; margin-bottom: 8px; }
+  .mock .dica { background: var(--verde-fundo); color: var(--verde); border-radius: 10px; padding: 10px 12px; font-size: .88rem; margin-top: 10px; }
+
+  .secao { padding: 56px 0 8px; }
+  .secao > h2 { font-size: clamp(1.5rem, 3.5vw, 2rem); margin: 0 0 8px; color: var(--marinho); font-weight: 800; }
+  .secao > p.sub { color: var(--suave); margin: 0 0 28px; max-width: 40em; }
+  .grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .passo, .beneficio { background: #fff; border: 1px solid var(--borda); border-radius: var(--raio); padding: 22px; }
+  .passo .n { width: 36px; height: 36px; border-radius: 50%; background: var(--marinho); color: var(--lima); display: grid; place-items: center; font-weight: 800; font-family: Nunito, sans-serif; margin-bottom: 12px; }
+  .passo h3, .beneficio h3 { margin: 0 0 6px; font-size: 1.1rem; color: var(--marinho); }
+  .passo p, .beneficio p { margin: 0; color: var(--suave); font-size: .95rem; }
+  .beneficio .ic { font-size: 1.6rem; margin-bottom: 8px; }
+  .autor { background: var(--marinho-escuro); color: #fff; border-radius: 18px; padding: 32px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; margin-top: 56px; }
+  .autor .selo { width: 72px; height: 72px; border-radius: 16px; background: var(--lima); color: var(--marinho-escuro); display: grid; place-items: center; font-size: 2rem; }
+  .autor h3 { margin: 0 0 6px; font-size: 1.3rem; }
+  .autor p { margin: 0; opacity: .85; }
+  .faq details { background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+  .faq summary { font-weight: 600; cursor: pointer; color: var(--marinho); }
+  .faq p { margin: 10px 0 0; color: var(--suave); }
+  .cta-final { text-align: center; padding: 48px 16px; }
+  .cta-final h2 { color: var(--marinho); margin: 0 0 16px; font-size: 1.8rem; }
+  footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 28px 16px 40px; border-top: 1px solid var(--borda); margin-top: 32px; }
+
+  /* Cartões do app */
+  .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: var(--raio); padding: 20px; margin-bottom: 16px; }
+  .cartao h2 { font-size: 1.15rem; margin: 0 0 12px; color: var(--marinho); font-weight: 800; }
+  .rotulo-campo { display: block; font-size: .88rem; font-weight: 600; margin: 12px 0 4px; }
+  input[type=text], input[type=email], input[type=password], input[type=number], input[type=date] {
+    font: inherit; width: 100%; padding: 11px 12px; border: 1px solid var(--borda); border-radius: 10px; background: #fff; color: var(--texto);
+  }
+  input:focus { outline: 2px solid var(--marinho); outline-offset: 1px; }
+  input[type=file] { display: none; }
+  .abas { display: flex; background: var(--marinho-claro); border-radius: 12px; padding: 4px; margin-bottom: 8px; }
+  .abas button { flex: 1; border: 0; background: transparent; font: inherit; font-weight: 600; padding: 10px; border-radius: 9px; cursor: pointer; color: var(--marinho); }
+  .abas button.ativa { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .msg { border-radius: 10px; padding: 12px 14px; margin: 12px 0 0; font-size: .95rem; }
+  .msg.erro { background: var(--erro-fundo); color: var(--erro); }
+  .msg.ok { background: var(--verde-fundo); color: var(--verde); }
+
+  .boas-vindas { padding: 28px 0 16px; }
+  .boas-vindas h1 { margin: 0; font-size: 1.6rem; color: var(--marinho); }
+  .boas-vindas p { margin: 4px 0 0; color: var(--suave); }
+  .painel { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+  .envio { text-align: center; }
+  .envio .area {
+    border: 2px dashed var(--barra); border-radius: 12px; padding: 24px 16px; background: #FAFBFE; margin-bottom: 14px;
+  }
+  .envio .area p { color: var(--suave); margin: 0 0 14px; }
+  .botoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .previa img { max-width: 100%; max-height: 240px; border-radius: 8px; border: 1px solid var(--borda); margin-top: 12px; }
+  .previa .nome { font-size: .9rem; color: var(--suave); margin-top: 10px; }
+  .credito-grande { font-family: Nunito, sans-serif; font-size: 2.6rem; font-weight: 900; color: var(--marinho); line-height: 1; }
+  .credito-grande small { font-size: 1rem; font-weight: 700; color: var(--suave); }
+  .linha-voucher { display: flex; gap: 8px; margin-top: 8px; }
+  #voucher { text-transform: uppercase; }
+
+  .carregando { text-align: center; padding: 28px 20px; }
+  .spinner { width: 40px; height: 40px; border: 4px solid var(--marinho-claro); border-top-color: var(--marinho); border-radius: 50%; margin: 0 auto 12px; animation: gira .9s linear infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+
+  /* Resultado */
+  .kpis { display: flex; flex-wrap: wrap; gap: 12px; }
+  .kpi { flex: 1 1 140px; background: var(--marinho-claro); border-radius: 12px; padding: 12px 14px; }
+  .kpi .r { font-size: .8rem; color: var(--suave); }
+  .kpi .v { font-family: Nunito, sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--marinho); }
+  .dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; margin-top: 14px; font-size: .92rem; }
+  .dados span { color: var(--suave); display: block; font-size: .78rem; }
+  .resumo { font-size: 1.02rem; margin: 14px 0 0; }
+  .alertas { background: var(--alerta-fundo); border-color: var(--alerta-borda); }
+  .alertas h2 { color: var(--alerta); }
+  .alertas ul { margin: 0; padding-left: 20px; }
+  .alertas li { margin-bottom: 6px; }
+  .oportunidades { border: 2px solid var(--marinho); }
+  .oport { border-top: 1px solid var(--borda); padding: 14px 0; }
+  .oport:first-of-type { border-top: 0; padding-top: 0; }
+  .oport .cab { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .oport h3 { margin: 0; font-size: 1.02rem; }
+  .oport p { margin: 6px 0 10px; color: var(--suave); font-size: .95rem; }
+  .economia { background: var(--verde-fundo); color: var(--verde); font-weight: 700; border-radius: 8px; padding: 3px 9px; font-size: .85rem; white-space: nowrap; }
+  .prio { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--suave); }
+  .item { border-top: 1px solid var(--borda); padding: 12px 0; }
+  .item:first-of-type { border-top: 0; padding-top: 0; }
+  .item-topo { display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
+  .item-topo .v { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .item p { margin: 4px 0 0; color: var(--suave); font-size: .93rem; }
+  .gd { border-left: 5px solid var(--lima); }
+
+  /* Gráfico de barras */
+  .grafico { position: relative; margin-top: 10px; }
+  .barras { display: flex; align-items: flex-end; gap: 2px; height: 150px; border-bottom: 1px solid var(--borda); }
+  .barra { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; cursor: default; }
+  .barra .b { width: 70%; max-width: 36px; background: var(--barra); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .barra.destacada .b { background: var(--marinho); }
+  .barra:hover .b { background: var(--marinho-escuro); }
+  .rotulos { display: flex; gap: 2px; }
+  .rotulos div { flex: 1; text-align: center; font-size: .68rem; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 4px; }
+  .dica-grafico { position: absolute; pointer-events: none; background: var(--texto); color: #fff; font-size: .8rem; padding: 6px 9px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); display: none; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--borda); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: .75rem; color: var(--suave); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .rolagem { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+  .lista-analises .la { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--borda); padding: 12px 0; }
+  .lista-analises .la:first-child { border-top: 0; }
+  .lista-analises .la small { color: var(--suave); display: block; }
+  .vazio { color: var(--suave); text-align: center; padding: 20px; }
+  .aviso-legal { font-size: .8rem; color: var(--suave); text-align: center; margin: 8px 0 32px; }
+
+  @media (max-width: 800px) {
+    .hero .dentro { grid-template-columns: 1fr; padding: 40px 16px 48px; }
+    .painel { grid-template-columns: 1fr; }
+    .autor { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .topo img { height: 38px; }
+    .esconde-celular { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="dentro">
+    <img src="/logo.png" alt="Conta Clara" id="logoTopo">
+    <div class="acoes" id="acoesDeslogado">
+      <button class="botao fantasma" data-ir="entrar">Entrar</button>
+      <button class="botao primario pequeno" data-ir="cadastrar">Criar conta</button>
+    </div>
+    <div class="acoes" id="acoesLogado" hidden>
+      <span class="saldo-chip" id="chipCreditos">0 créditos</span>
+      <button class="botao fantasma pequeno esconde-celular" data-ir="painel">Analisar</button>
+      <button class="botao fantasma pequeno" data-ir="historico">Histórico</button>
+      <button class="botao fantasma pequeno" id="btnSair">Sair</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ PÁGINA INICIAL ============ -->
+<div id="telaInicio" data-tela>
+  <section class="hero">
+    <div class="dentro">
+      <div>
+        <h1>Sua conta de luz, <em>explicada</em> em 1 minuto.</h1>
+        <p>Tire uma foto da fatura. O Conta Clara mostra o que é cada cobrança, quanto sua energia solar gerou de crédito e onde dá para pagar menos.</p>
+        <div class="ctas">
+          <button class="botao destaque" data-ir="cadastrar">Analisar minha conta</button>
+          <a class="botao secundario" href="#como-funciona">Como funciona</a>
+        </div>
+        <div class="obs" id="obsGratis">Crie sua conta e faça a primeira análise grátis.</div>
+      </div>
+      <div class="mock" aria-hidden="true">
+        <span class="tag">Fatura de agosto</span>
+        <div class="linha"><span>Consumo TUSD</span><span>R$ 21,10</span></div>
+        <div class="linha"><span>Fio B (Lei 14.300)</span><span>R$ 38,40</span></div>
+        <div class="linha"><span>Iluminação pública</span><span>R$ 28,02</span></div>
+        <div class="linha"><span>Créditos solares</span><span style="color:var(--verde)">− R$ 312,80</span></div>
+        <div class="dica">💡 Seus créditos estão acumulando. Dá para transferir parte para outro imóvel seu.</div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section class="secao" id="como-funciona">
+      <h2>Como funciona</h2>
+      <p class="sub">Você não precisa entender de energia. A gente traduz a fatura para você.</p>
+      <div class="grade">
+        <div class="passo"><div class="n">1</div><h3>Fotografe a fatura</h3><p>Pelo celular, com a conta inteira aparecendo. Também aceita o PDF que chega por e-mail.</p></div>
+        <div class="passo"><div class="n">2</div><h3>A leitura é automática</h3><p>Em uns 20 segundos o sistema lê valores, consumo, bandeira, tributos e créditos de energia solar.</p></div>
+        <div class="passo"><div class="n">3</div><h3>Entenda e economize</h3><p>Cada item vem explicado em português simples, com alertas e sugestões para reduzir sua conta.</p></div>
+      </div>
+    </section>
+
+    <section class="secao">
+      <h2>O que você descobre</h2>
+      <p class="sub">Feito para as faturas da Equatorial Goiás, e funciona com as outras distribuidoras também.</p>
+      <div class="grade">
+        <div class="beneficio"><div class="ic">🧾</div><h3>Cada cobrança explicada</h3><p>TUSD, TE, bandeira, iluminação pública, ICMS, PIS e COFINS, sem letra miúda.</p></div>
+        <div class="beneficio"><div class="ic">☀️</div><h3>Seus créditos solares</h3><p>Quanto seu sistema injetou, quanto foi abatido, quanto isso valeu em reais e o saldo que sobrou.</p></div>
+        <div class="beneficio"><div class="ic">💰</div><h3>Onde pagar menos</h3><p>Energia solar, créditos parados, multa, leitura pela média, demanda e reativo em empresas.</p></div>
+        <div class="beneficio"><div class="ic">📈</div><h3>Histórico mês a mês</h3><p>Cada fatura analisada fica guardada. Você acompanha consumo e créditos ao longo do tempo.</p></div>
+      </div>
+    </section>
+
+    <section class="autor">
+      <div class="selo">⚡</div>
+      <div>
+        <h3>Criado por engenheiro eletricista</h3>
+        <p>O Conta Clara é da Meta Soluções em Energia, de Goiânia, que trabalha com geração distribuída, média tensão e proteção elétrica desde 2005. Se a análise encontrar algo que precise de um especialista, é só chamar.</p>
+      </div>
+    </section>
+
+    <section class="secao faq">
+      <h2>Perguntas frequentes</h2>
+      <details><summary>Quanto custa?</summary><p>Cada análise usa 1 crédito. Sua conta nova já vem com crédito para a primeira análise. Depois você pode usar um voucher ou falar com a gente para conseguir mais créditos.</p></details>
+      <details><summary>O que é o voucher?</summary><p>É um código que dá créditos de análise. Você recebe de parceiros, integradores de energia solar ou da própria Meta Soluções e digita no seu painel.</p></details>
+      <details><summary>Vocês guardam a foto da minha conta?</summary><p>Não. A imagem é usada só na leitura e descartada. Guardamos apenas o resumo (valores, consumo e créditos) para montar seu histórico. Você pode apagar sua conta e o histórico quando quiser.</p></details>
+      <details><summary>E se a leitura sair errada?</summary><p>A leitura é automática e pode errar, principalmente com foto tremida ou cortada. Confira sempre com a fatura original. Se a foto não der para ler, o crédito volta para você.</p></details>
+    </section>
+
+    <section class="cta-final">
+      <h2>Pronto para entender sua conta?</h2>
+      <button class="botao primario" data-ir="cadastrar">Criar minha conta</button>
+    </section>
+  </main>
+</div>
+
+<!-- ============ ENTRAR / CADASTRAR ============ -->
+<main id="telaEntrar" data-tela hidden>
+  <div class="estreito" style="max-width:440px; padding:40px 0">
+    <div class="cartao">
+      <div class="abas">
+        <button id="abaEntrar" class="ativa">Entrar</button>
+        <button id="abaCadastrar">Criar conta</button>
+      </div>
+      <form id="formConta" autocomplete="on">
+        <div id="campoNome" hidden>
+          <label class="rotulo-campo" for="nome">Seu nome</label>
+          <input type="text" id="nome" autocomplete="name">
+        </div>
+        <label class="rotulo-campo" for="email">E-mail</label>
+        <input type="email" id="email" autocomplete="email" required>
+        <label class="rotulo-campo" for="senha">Senha</label>
+        <input type="password" id="senha" autocomplete="current-password" required minlength="6">
+        <div id="msgConta"></div>
+        <button class="botao primario largo" style="margin-top:16px" id="btnConta" type="submit">Entrar</button>
+      </form>
+      <p style="font-size:.85rem; color:var(--suave); margin:14px 0 0; text-align:center" id="esqueciSenha">
+        Esqueceu a senha? <a href="#" data-whats="Olá! Esqueci a senha do Conta Clara.">Fale com a gente</a>
+      </p>
+    </div>
+  </div>
+</main>
+
+<!-- ============ PAINEL ============ -->
+<main id="telaPainel" data-tela hidden>
+  <div class="boas-vindas">
+    <h1 id="ola">Olá!</h1>
+    <p>Envie uma fatura para analisar. Cada análise usa 1 crédito.</p>
+  </div>
+
+  <div class="painel">
+    <div>
+      <section class="cartao envio" id="cartaoEnvio">
+        <h2>Analisar fatura</h2>
+        <div class="area">
+          <p>Foto da conta inteira, bem iluminada, ou o PDF.</p>
+          <div class="botoes">
+            <button class="botao primario" id="btnFoto">📷 Tirar foto</button>
+            <button class="botao secundario" id="btnArquivo">📄 Escolher arquivo</button>
+          </div>
+          <div class="previa" id="previa"></div>
+        </div>
+        <button class="botao destaque largo" id="btnAnalisar" disabled>Analisar minha conta (1 crédito)</button>
+        <div id="msgAnalise"></div>
+      </section>
+      <input type="file" id="inputFoto" accept="image/*" capture="environment">
+      <input type="file" id="inputArquivo" accept="image/*,application/pdf">
+
+      <section class="cartao carregando" id="carregando" hidden>
+        <div class="spinner"></div>
+        <div>Lendo sua fatura… isso leva uns 20 segundos.</div>
+      </section>
+
+      <div id="resultado"></div>
+    </div>
+
+    <aside>
+      <section class="cartao">
+        <h2>Seus créditos</h2>
+        <div class="credito-grande"><span id="numCreditos">0</span> <small id="txtCreditos">análises</small></div>
+        <label class="rotulo-campo" for="voucher">Tem um voucher?</label>
+        <form class="linha-voucher" id="formVoucher">
+          <input type="text" id="voucher" placeholder="CC-XXXXXXXX" autocomplete="off">
+          <button class="botao primario pequeno" type="submit">Usar</button>
+        </form>
+        <div id="msgVoucher"></div>
+        <a class="botao secundario largo" style="margin-top:14px" href="#" data-whats="Olá! Quero comprar créditos do Conta Clara.">Comprar mais créditos</a>
+      </section>
+      <section class="cartao">
+        <h2>Seu histórico</h2>
+        <p style="margin:0 0 12px; color:var(--suave); font-size:.95rem">Consumo, créditos de energia solar mês a mês e o saldo que você tem hoje.</p>
+        <button class="botao secundario largo" data-ir="historico">Ver histórico</button>
+      </section>
+    </aside>
+  </div>
+  <p class="aviso-legal">A explicação é gerada automaticamente e pode conter erros. Confira sempre com a fatura original. Não guardamos a imagem da sua conta.</p>
+</main>
+
+<!-- ============ HISTÓRICO ============ -->
+<main id="telaHistorico" data-tela hidden>
+  <div class="boas-vindas">
+    <h1>Seu histórico</h1>
+    <p>Tudo o que foi lido nas faturas que você analisou.</p>
+  </div>
+  <div id="conteudoHistorico"><div class="cartao carregando"><div class="spinner"></div>Carregando…</div></div>
+  <section class="cartao" style="margin-top:32px">
+    <h2>Apagar minha conta</h2>
+    <p style="margin:0 0 10px; color:var(--suave); font-size:.95rem">Apaga seu cadastro, créditos e todo o histórico. Não dá para desfazer.</p>
+    <form class="linha-voucher" id="formExcluir">
+      <input type="password" id="senhaExcluir" placeholder="Digite sua senha para confirmar" autocomplete="current-password">
+      <button class="botao pequeno" style="background:var(--erro-fundo); color:var(--erro)" type="submit">Apagar</button>
+    </form>
+    <div id="msgExcluir"></div>
+  </section>
+</main>
+
+<footer>
+  Conta Clara é um serviço da <strong>Meta Soluções em Energia</strong> · Goiânia-GO<br>
+  <a href="#" data-whats="Olá! Vim pelo Conta Clara.">Falar no WhatsApp</a> · <a href="mailto:gilson@metasol.com.br">gilson@metasol.com.br</a>
+</footer>
+
+<div class="dica-grafico" id="dicaGrafico"></div>
+
+<script>
+(function () {
+  const WHATSAPP = "5562996207352";
+  const LIMITE_PDF = 3 * 1024 * 1024;
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- Sessão ----------
+  const guardar = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+  let token = guardar.get("cc_token");
+  let usuario = null;
+
+  async function api(caminho, corpo, metodo) {
+    const opcoes = { method: metodo || (corpo ? "POST" : "GET"), headers: {} };
+    if (token) opcoes.headers.Authorization = "Bearer " + token;
+    if (corpo) { opcoes.headers["Content-Type"] = "application/json"; opcoes.body = JSON.stringify(corpo); }
+    const r = await fetch(caminho, opcoes);
+    const dados = await r.json().catch(() => ({
+      erro: r.status === 504 ? "A análise demorou demais e foi interrompida. Nenhum crédito foi usado. Tente de novo."
+        : r.status === 413 ? "O arquivo é grande demais. Tente enviar uma foto da fatura."
+        : "O servidor respondeu com erro " + r.status + ". Nenhum crédito foi usado. Tente de novo.",
+    }));
+    if (r.status === 401 && token && caminho !== "/api/conta") { sair(); }
+    return { ok: r.ok, status: r.status, dados };
+  }
+
+  function atualizarCreditos(n) {
+    usuario.creditos = n;
+    $("chipCreditos").textContent = n + (n === 1 ? " crédito" : " créditos");
+    $("numCreditos").textContent = n;
+    $("txtCreditos").textContent = n === 1 ? "análise" : "análises";
+  }
+
+  function entrarNoApp(dados) {
+    if (dados.token) { token = dados.token; guardar.set("cc_token", token); }
+    usuario = { nome: dados.nome, email: dados.email, creditos: dados.creditos };
+    $("acoesDeslogado").hidden = true;
+    $("acoesLogado").hidden = false;
+    $("ola").textContent = "Olá, " + (usuario.nome || "").split(" ")[0] + "!";
+    atualizarCreditos(dados.creditos);
+  }
+
+  function sair() {
+    token = null; usuario = null; guardar.del("cc_token");
+    $("acoesDeslogado").hidden = false; $("acoesLogado").hidden = true;
+    $("resultado").innerHTML = "";
+    ir("inicio");
+  }
+  $("btnSair").onclick = sair;
+
+  // ---------- Navegação ----------
+  const telas = { inicio: "telaInicio", entrar: "telaEntrar", cadastrar: "telaEntrar", painel: "telaPainel", historico: "telaHistorico" };
+  function ir(nome) {
+    if ((nome === "painel" || nome === "historico") && !token) nome = "entrar";
+    if ((nome === "entrar" || nome === "cadastrar") && token) nome = "painel";
+    document.querySelectorAll("[data-tela]").forEach((t) => (t.hidden = t.id !== telas[nome]));
+    if (nome === "entrar" || nome === "cadastrar") modoConta(nome);
+    if (nome === "historico") carregarHistorico();
+    if (location.hash !== "#" + nome) history.pushState(null, "", "#" + nome);
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("popstate", () => ir(location.hash.slice(1) || "inicio"));
+  document.addEventListener("click", (e) => {
+    const alvo = e.target.closest("[data-ir]");
+    if (alvo) { e.preventDefault(); ir(alvo.dataset.ir); return; }
+    const w = e.target.closest("[data-whats]");
+    if (w) { e.preventDefault(); abrirWhats(w.dataset.whats); }
+  });
+  $("logoTopo").onclick = () => ir(token ? "painel" : "inicio");
+  function abrirWhats(texto) {
+    window.open("https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(texto), "_blank", "noopener");
+  }
+
+  // ---------- Entrar / cadastrar ----------
+  let modo = "entrar";
+  function modoConta(m) {
+    modo = m;
+    $("abaEntrar").classList.toggle("ativa", m === "entrar");
+    $("abaCadastrar").classList.toggle("ativa", m === "cadastrar");
+    $("campoNome").hidden = m !== "cadastrar";
+    $("btnConta").textContent = m === "cadastrar" ? "Criar conta" : "Entrar";
+    $("senha").autocomplete = m === "cadastrar" ? "new-password" : "current-password";
+    $("esqueciSenha").hidden = m === "cadastrar";
+    $("msgConta").innerHTML = "";
+  }
+  $("abaEntrar").onclick = () => ir("entrar");
+  $("abaCadastrar").onclick = () => ir("cadastrar");
+
+  $("formConta").onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = $("btnConta"); btn.disabled = true;
+    const corpo = { acao: modo, email: $("email").value, senha: $("senha").value };
+    if (modo === "cadastrar") corpo.nome = $("nome").value;
+    try {
+      const r = await api("/api/conta", corpo);
+      if (!r.ok) { mensagem("msgConta", r.dados.erro, "erro"); return; }
+      entrarNoApp(r.dados);
+      $("senha").value = "";
+      ir("painel");
+    } catch { mensagem("msgConta", "Sem conexão. Verifique sua internet.", "erro"); }
+    finally { btn.disabled = false; }
+  };
+
+  function mensagem(id, texto, tipo) {
+    $(id).innerHTML = texto ? '<div class="msg ' + tipo + '">' + escapar(texto) + "</div>" : "";
+  }
+
+  // ---------- Voucher ----------
+  $("formVoucher").onsubmit = async (e) => {
+    e.preventDefault();
+    const codigo = $("voucher").value.trim();
+    if (!codigo) return;
+    const r = await api("/api/voucher", { codigo });
+    if (!r.ok) { mensagem("msgVoucher", r.dados.erro, "erro"); return; }
+    atualizarCreditos(r.dados.creditos);
+    $("voucher").value = "";
+    mensagem("msgVoucher", "Pronto! " + r.dados.adicionados + (r.dados.adicionados === 1 ? " crédito adicionado." : " créditos adicionados."), "ok");
+  };
+
+  // ---------- Envio da fatura ----------
+  let arquivoPronto = null;
+  $("btnFoto").onclick = () => $("inputFoto").click();
+  $("btnArquivo").onclick = () => $("inputArquivo").click();
+  $("inputFoto").onchange = (e) => prepararArquivo(e.target.files[0]);
+  $("inputArquivo").onchange = (e) => prepararArquivo(e.target.files[0]);
+
+  async function prepararArquivo(arquivo) {
+    mensagem("msgAnalise", "");
+    arquivoPronto = null; $("btnAnalisar").disabled = true; $("previa").innerHTML = "";
+    if (!arquivo) return;
+    try {
+      if (arquivo.type === "application/pdf") {
+        if (arquivo.size > LIMITE_PDF) { mensagem("msgAnalise", "O PDF passa de 3 MB. Tente enviar uma foto da fatura.", "erro"); return; }
+        arquivoPronto = { base64: await paraBase64(arquivo), tipo: "application/pdf" };
+        $("previa").innerHTML = '<div class="nome">📄 ' + escapar(arquivo.name) + "</div>";
+      } else if (arquivo.type.startsWith("image/")) {
+        const url = await reduzirImagem(arquivo, 1800, 0.85);
+        arquivoPronto = { base64: url.split(",")[1], tipo: "image/jpeg" };
+        $("previa").innerHTML = '<img alt="Prévia da fatura" src="' + url + '">';
+      } else { mensagem("msgAnalise", "Formato não aceito. Envie uma foto ou um PDF.", "erro"); return; }
+      $("btnAnalisar").disabled = false;
+    } catch { mensagem("msgAnalise", "Não consegui abrir esse arquivo. Tente outra foto.", "erro"); }
+  }
+  function paraBase64(arquivo) {
+    return new Promise((ok, falha) => {
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = falha; r.readAsDataURL(arquivo);
+    });
+  }
+  function reduzirImagem(arquivo, ladoMax, qualidade) {
+    return new Promise((ok, falha) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        const esc = Math.min(1, ladoMax / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * esc); c.height = Math.round(img.height * esc);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", qualidade));
+      };
+      img.onerror = falha; img.src = url;
+    });
+  }
+
+  $("btnAnalisar").onclick = async () => {
+    if (!arquivoPronto) return;
+    if (usuario.creditos < 1) { mensagem("msgAnalise", "Você não tem créditos. Use um voucher ou compre mais créditos.", "erro"); return; }
+    mensagem("msgAnalise", "");
+    $("resultado").innerHTML = "";
+    $("carregando").hidden = false; $("btnAnalisar").disabled = true;
+    try {
+      const r = await api("/api/analisar", { arquivo: arquivoPronto.base64, tipo: arquivoPronto.tipo });
+      if (typeof r.dados.creditos === "number") atualizarCreditos(r.dados.creditos);
+      if (!r.ok) { mensagem("msgAnalise", r.dados.erro || "Algo deu errado. Tente de novo.", "erro"); return; }
+      if (r.dados.legivel === false) {
+        mensagem("msgAnalise", (r.dados.motivo_ilegivel || "Não consegui ler a fatura.") + " Seu crédito foi devolvido.", "erro"); return;
+      }
+      mostrarResultado(r.dados, $("resultado"));
+      arquivoPronto = null; $("previa").innerHTML = "";
+      $("inputFoto").value = ""; $("inputArquivo").value = "";
+    } catch { mensagem("msgAnalise", "Sem conexão com o servidor. Verifique sua internet.", "erro"); }
+    finally { $("carregando").hidden = true; $("btnAnalisar").disabled = !arquivoPronto; }
+  };
+
+  // ---------- Formatação ----------
+  function escapar(t) {
+    return String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  const ehNum = (v) => typeof v === "number" && isFinite(v);
+  const reais = (v) => ehNum(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
+  const kwh = (v) => ehNum(v) ? v.toLocaleString("pt-BR") + " kWh" : "—";
+  const MESES = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+  const mesCurto = (iso) => { const [a, m] = String(iso).split("-"); return MESES[+m - 1] ? MESES[+m - 1] + "/" + a.slice(2) : iso; };
+
+  // Gráfico de barras simples (uma série), com dica ao passar o dedo/mouse
+  function graficoBarras(pontos, unidade, destacarPrimeiro) {
+    const max = Math.max(...pontos.map((p) => p.v), 1);
+    return '<div class="grafico"><div class="barras">' + pontos.map((p, i) =>
+      '<div class="barra' + (destacarPrimeiro && i === pontos.length - 1 ? " destacada" : "") + '" data-dica="' +
+      escapar(p.r + ": " + p.v.toLocaleString("pt-BR") + " " + unidade) + '"><div class="b" style="height:' +
+      Math.max(1.5, (p.v / max) * 100) + '%"></div></div>'
+    ).join("") + '</div><div class="rotulos">' + pontos.map((p) => "<div>" + escapar(p.r) + "</div>").join("") + "</div></div>";
+  }
+  const dica = $("dicaGrafico");
+  function mostrarDica(e) {
+    const b = e.target.closest(".barra[data-dica]");
+    if (!b) { dica.style.display = "none"; return; }
+    const r = b.getBoundingClientRect();
+    dica.textContent = b.dataset.dica; dica.style.display = "block";
+    dica.style.left = r.left + r.width / 2 + window.scrollX + "px";
+    dica.style.top = r.top + window.scrollY + b.querySelector(".b").offsetTop + "px";
+    dica.style.position = "absolute";
+  }
+  document.addEventListener("mouseover", mostrarDica);
+  document.addEventListener("touchstart", mostrarDica, { passive: true });
+
+  // ---------- Resultado da análise ----------
+  function mostrarResultado(d, destino) {
+    let h = "";
+    h += '<section class="cartao"><h2>Resumo da sua conta</h2><div class="kpis">' +
+      '<div class="kpi"><div class="r">Total a pagar</div><div class="v">' + reais(d.valor_total) + "</div></div>" +
+      '<div class="kpi"><div class="r">Consumo</div><div class="v">' + kwh(d.consumo_kwh) + "</div></div></div>";
+    const campos = [["Referência", d.mes_referencia], ["Vencimento", d.vencimento], ["Distribuidora", d.distribuidora],
+      ["Unidade consumidora", d.unidade_consumidora], ["Classe", d.classe], ["Ligação", d.tipo_ligacao]].filter(([, v]) => v);
+    if (campos.length) h += '<div class="dados">' + campos.map(([r, v]) => "<div><span>" + r + "</span>" + escapar(v) + "</div>").join("") + "</div>";
+    if (d.resumo) h += '<p class="resumo">' + escapar(d.resumo) + "</p>";
+    h += "</section>";
+
+    const ops = Array.isArray(d.oportunidades) ? d.oportunidades : [];
+    if (ops.length) {
+      h += '<section class="cartao oportunidades"><h2>💡 Como pagar menos</h2>' + ops.map((o) =>
+        '<div class="oport"><div class="cab"><h3>' + escapar(o.titulo) + "</h3>" +
+        (ehNum(o.economia_estimada_mensal_reais) && o.economia_estimada_mensal_reais > 0
+          ? '<span class="economia">≈ ' + reais(o.economia_estimada_mensal_reais) + "/mês</span>" : "") +
+        "</div>" + (o.prioridade ? '<div class="prio">Prioridade ' + escapar(o.prioridade) + "</div>" : "") +
+        "<p>" + escapar(o.descricao) + "</p>" +
+        '<a class="botao secundario pequeno" href="#" data-whats="' + escapar("Olá! Fiz a análise no Conta Clara" +
+          (d.unidade_consumidora ? " (UC " + d.unidade_consumidora + ")" : "") + " e quero ajuda com: " + (o.titulo || "")) +
+        '">Quero ajuda com isso</a></div>'
+      ).join("") + '<p style="font-size:.8rem; color:var(--suave); margin:8px 0 0">Valores de economia são estimativas feitas com os dados da fatura.</p></section>';
+    }
+
+    if (Array.isArray(d.alertas) && d.alertas.length) {
+      h += '<section class="cartao alertas"><h2>⚠️ Pontos de atenção</h2><ul>' + d.alertas.map((a) => "<li>" + escapar(a) + "</li>").join("") + "</ul></section>";
+    }
+
+    const gd = d.geracao_distribuida;
+    if (gd && gd.possui) {
+      const k = [["Injetada na rede", kwh(gd.energia_injetada_kwh)], ["Recebida de outra unidade", ehNum(gd.creditos_recebidos_kwh) ? kwh(gd.creditos_recebidos_kwh) : null],
+        ["Compensada", kwh(gd.energia_compensada_kwh)], ["Valor dos créditos", ehNum(gd.valor_creditos_reais) ? reais(gd.valor_creditos_reais) : null],
+        ["Saldo de créditos hoje", kwh(gd.saldo_creditos_kwh)], ["A expirar", ehNum(gd.creditos_a_expirar_kwh) && gd.creditos_a_expirar_kwh > 0 ? kwh(gd.creditos_a_expirar_kwh) : null]]
+        .filter(([, v]) => v);
+      h += '<section class="cartao gd"><h2>☀️ Sua energia solar' + (gd.modalidade ? ' <small style="font-weight:600; color:var(--suave); font-size:.85rem">· ' + escapar(gd.modalidade) + "</small>" : "") +
+        '</h2><div class="kpis">' + k.map(([r, v]) => '<div class="kpi"><div class="r">' + r + '</div><div class="v">' + v + "</div></div>").join("") + "</div>" +
+        (gd.explicacao ? '<p style="margin:14px 0 0">' + escapar(gd.explicacao) + "</p>" : "") + "</section>";
+    }
+
+    if (Array.isArray(d.itens) && d.itens.length) {
+      h += '<section class="cartao"><h2>O que você está pagando</h2>' + d.itens.map((i) =>
+        '<div class="item"><div class="item-topo"><span>' + escapar(i.descricao) + '</span><span class="v">' + reais(i.valor) + "</span></div>" +
+        (i.explicacao ? "<p>" + escapar(i.explicacao) + "</p>" : "") + "</div>").join("") + "</section>";
+    }
+
+    const hist = (Array.isArray(d.historico) ? d.historico : []).filter((x) => ehNum(x.consumo_kwh));
+    if (hist.length > 1) {
+      // Do mais antigo para o mais recente, da esquerda para a direita
+      const ordenado = hist.slice().sort((a, b) => String(a.mes_iso || "").localeCompare(String(b.mes_iso || "")));
+      const pontos = (hist[0].mes_iso ? ordenado : hist.slice().reverse()).map((x) => ({ r: x.mes_iso ? mesCurto(x.mes_iso) : x.mes, v: x.consumo_kwh }));
+      h += '<section class="cartao"><h2>Consumo nos últimos meses (kWh)</h2>' + graficoBarras(pontos, "kWh", true) + "</section>";
+    }
+
+    h += '<div class="botoes" style="margin-bottom:16px"><button class="botao secundario" data-ir="historico">Ver meu histórico</button>' +
+      '<button class="botao primario" id="btnNova">Analisar outra conta</button></div>';
+
+    destino.innerHTML = h;
+    const nova = destino.querySelector("#btnNova");
+    if (nova) nova.onclick = () => { destino.innerHTML = ""; ir("painel"); $("cartaoEnvio").scrollIntoView({ behavior: "smooth" }); };
+    destino.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // ---------- Histórico ----------
+  async function carregarHistorico() {
+    const alvo = $("conteudoHistorico");
+    alvo.innerHTML = '<div class="cartao carregando"><div class="spinner"></div>Carregando…</div>';
+    const r = await api("/api/historico");
+    if (!r.ok) { alvo.innerHTML = '<div class="msg erro">' + escapar(r.dados.erro) + "</div>"; return; }
+    const { analises, unidades } = r.dados;
+    if (!analises.length) {
+      alvo.innerHTML = '<div class="cartao vazio">Você ainda não analisou nenhuma fatura.<br><br><button class="botao primario" data-ir="painel">Analisar agora</button></div>';
+      return;
+    }
+    let h = "";
+
+    for (const u of unidades) {
+      const meses = u.meses.slice().sort((a, b) => a.mes.localeCompare(b.mes)); // antigo → recente
+      const temGd = meses.some((m) => ehNum(m.injetada_kwh) || ehNum(m.recebidos_kwh) || ehNum(m.saldo_kwh));
+      if (!temGd) continue;
+      const nomeUc = u.uc === "sem-uc" ? "Unidade sem número identificado" : "Unidade " + u.uc;
+      const valorTotal = meses.reduce((s, m) => s + (ehNum(m.valor_creditos_reais) ? m.valor_creditos_reais : 0), 0);
+      const geradoTotal = meses.reduce((s, m) => s + (ehNum(m.injetada_kwh) ? m.injetada_kwh : 0) + (ehNum(m.recebidos_kwh) ? m.recebidos_kwh : 0), 0);
+
+      h += '<section class="cartao gd"><h2>☀️ Créditos de energia solar · ' + escapar(nomeUc) + '</h2><div class="kpis">' +
+        '<div class="kpi"><div class="r">Seu crédito hoje' + (u.saldo_referencia ? " (" + mesCurto(u.saldo_referencia) + ")" : "") + '</div><div class="v">' + kwh(u.saldo_atual_kwh) + "</div></div>" +
+        '<div class="kpi"><div class="r">Créditos recebidos no período</div><div class="v">' + kwh(geradoTotal) + "</div></div>" +
+        (valorTotal > 0 ? '<div class="kpi"><div class="r">Abatido na conta (faturas analisadas)</div><div class="v">' + reais(valorTotal) + "</div></div>" : "") +
+        "</div>";
+
+      const pontos = meses.filter((m) => ehNum(m.injetada_kwh) || ehNum(m.recebidos_kwh))
+        .map((m) => ({ r: mesCurto(m.mes), v: (m.injetada_kwh || 0) + (m.recebidos_kwh || 0) }));
+      if (pontos.length > 1) {
+        h += '<h3 style="font-size:.95rem; margin:20px 0 0; color:var(--marinho)">Créditos recebidos por mês (kWh)</h3>' + graficoBarras(pontos, "kWh", true);
+      }
+
+      h += '<div class="rolagem" style="margin-top:16px"><table><thead><tr><th>Mês</th><th>Injetada</th><th>Recebida</th><th>Compensada</th><th>Valor abatido</th><th>Saldo</th></tr></thead><tbody>' +
+        meses.slice().reverse().map((m) => "<tr><td>" + mesCurto(m.mes) + "</td><td>" + kwh(m.injetada_kwh) + "</td><td>" + kwh(m.recebidos_kwh) +
+          "</td><td>" + kwh(m.compensada_kwh) + "</td><td>" + reais(m.valor_creditos_reais) + "</td><td>" + kwh(m.saldo_kwh) + "</td></tr>").join("") +
+        "</tbody></table></div>" +
+        '<p style="font-size:.8rem; color:var(--suave); margin:10px 0 0">Meses com "—" não apareceram nas faturas analisadas. Quanto mais faturas você enviar, mais completo fica.</p></section>';
+    }
+
+    h += '<section class="cartao lista-analises"><h2>Faturas analisadas</h2>' + analises.map((a) =>
+      '<div class="la"><div><strong>' + escapar(a.mes_referencia || "Mês não identificado") + "</strong> · " + reais(a.valor_total) +
+      "<small>" + (a.uc !== "sem-uc" ? "UC " + escapar(a.uc) + " · " : "") + kwh(a.consumo_kwh) + (a.possui_gd ? " · ☀️ solar" : "") +
+      " · analisada em " + new Date(a.analisado_em).toLocaleDateString("pt-BR") + "</small></div>" +
+      '<button class="botao secundario pequeno" data-abrir="' + escapar(a.id) + '">Abrir</button></div>'
+    ).join("") + '</section><div id="analiseAberta"></div>';
+
+    alvo.innerHTML = h;
+    alvo.querySelectorAll("[data-abrir]").forEach((b) => (b.onclick = async () => {
+      b.disabled = true;
+      const r2 = await api("/api/historico?id=" + encodeURIComponent(b.dataset.abrir));
+      b.disabled = false;
+      if (r2.ok) mostrarResultado(r2.dados, $("analiseAberta"));
+    }));
+  }
+
+  // ---------- Apagar conta ----------
+  $("formExcluir").onsubmit = async (e) => {
+    e.preventDefault();
+    const senha = $("senhaExcluir").value;
+    if (!senha) return;
+    const r = await api("/api/conta", { acao: "excluir", senha });
+    if (!r.ok) { mensagem("msgExcluir", r.dados.erro, "erro"); return; }
+    $("senhaExcluir").value = "";
+    sair();
+  };
+
+  // ---------- Início ----------
+  async function iniciar() {
+    const pedida = location.hash.slice(1) || "inicio";
+    if (token) {
+      try {
+        const r = await api("/api/conta", { acao: "eu" });
+        if (r.ok) { entrarNoApp(r.dados); ir(pedida === "inicio" || pedida === "entrar" || pedida === "cadastrar" ? "painel" : pedida); return; }
+        token = null; guardar.del("cc_token");
+      } catch {}
+    }
+    ir(telas[pedida] ? pedida : "inicio");
+  }
+
+  iniciar();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Conta Clara — Administração</title>
+<link rel="icon" type="image/png" href="/icone.png">
+<style>
+  :root { --marinho:#002D7A; --marinho-claro:#E6ECF7; --lima:#EBFF00; --fundo:#F3F6FB; --borda:#DDE3EE; --texto:#14203A; --suave:#56627A; --erro:#B3261E; --verde:#1B7F46; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fundo); color:var(--texto); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height:1.5; }
+  header { background:#fff; border-bottom:1px solid var(--borda); padding:10px 16px; display:flex; align-items:center; gap:12px; }
+  header img { height:40px; }
+  header span { color:var(--suave); font-weight:600; }
+  main { max-width:1000px; margin:0 auto; padding:20px 16px 48px; }
+  .cartao { background:#fff; border:1px solid var(--borda); border-radius:14px; padding:20px; margin-bottom:16px; }
+  h2 { margin:0 0 12px; font-size:1.1rem; color:var(--marinho); }
+  label { display:block; font-size:.85rem; font-weight:600; margin:10px 0 4px; }
+  input { font:inherit; width:100%; padding:10px 12px; border:1px solid var(--borda); border-radius:10px; }
+  .linha { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0 12px; }
+  button { appearance:none; border:0; cursor:pointer; font:inherit; font-weight:600; padding:10px 18px; border-radius:10px; background:var(--marinho); color:#fff; margin-top:14px; }
+  button.sec { background:var(--marinho-claro); color:var(--marinho); padding:6px 10px; margin:0; font-size:.85rem; }
+  .msg { padding:10px 12px; border-radius:10px; margin-top:12px; }
+  .msg.erro { background:#FDECEA; color:var(--erro); }
+  .msg.ok { background:#E7F5EC; color:var(--verde); }
+  .codigo-novo { font-family: ui-monospace, monospace; font-size:1.4rem; font-weight:700; background:var(--lima); color:var(--marinho); padding:6px 12px; border-radius:8px; display:inline-block; margin-top:8px; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--borda); white-space:nowrap; }
+  th { font-size:.75rem; color:var(--suave); text-transform:uppercase; }
+  .rolagem { overflow-x:auto; }
+  .kpis { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .kpi { flex:1 1 150px; background:#fff; border:1px solid var(--borda); border-radius:12px; padding:12px 14px; }
+  .kpi b { display:block; font-size:1.5rem; color:var(--marinho); }
+  .kpi span { font-size:.8rem; color:var(--suave); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<header><img src="/logo.png" alt="Conta Clara"><span>Administração</span></header>
+<main>
+  <section class="cartao" id="login">
+    <h2>Senha de administrador</h2>
+    <form id="formLogin"><input type="password" id="senhaAdmin" autocomplete="current-password"><button type="submit">Entrar</button></form>
+    <div id="msgLogin"></div>
+  </section>
+
+  <div id="app" hidden>
+    <div class="kpis">
+      <div class="kpi"><b id="kUsuarios">0</b><span>usuários</span></div>
+      <div class="kpi"><b id="kAnalises">0</b><span>análises feitas</span></div>
+      <div class="kpi"><b id="kCreditos">0</b><span>créditos em aberto</span></div>
+    </div>
+
+    <section class="cartao">
+      <h2>Criar voucher</h2>
+      <form id="formVoucher">
+        <div class="linha">
+          <div><label>Créditos que o voucher dá</label><input type="number" id="vCreditos" min="1" value="3" required></div>
+          <div><label>Quantas pessoas podem usar (0 = ilimitado)</label><input type="number" id="vUsos" min="0" value="1" required></div>
+          <div><label>Válido até (opcional)</label><input type="date" id="vValidade"></div>
+        </div>
+        <div class="linha">
+          <div><label>Código (vazio = gerar automático)</label><input type="text" id="vCodigo" placeholder="ex.: SOLAR10" style="text-transform:uppercase"></div>
+          <div><label>Descrição (só você vê)</label><input type="text" id="vDescricao" placeholder="ex.: parceria integrador X"></div>
+        </div>
+        <button type="submit">Criar voucher</button>
+      </form>
+      <div id="msgVoucher"></div>
+    </section>
+
+    <section class="cartao">
+      <h2>Vouchers</h2>
+      <div class="rolagem"><table><thead><tr><th>Código</th><th>Créditos</th><th>Usos</th><th>Validade</th><th>Descrição</th><th>Situação</th><th></th></tr></thead><tbody id="tabVouchers"></tbody></table></div>
+    </section>
+
+    <section class="cartao">
+      <h2>Usuários</h2>
+      <div class="rolagem"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Créditos</th><th>Análises</th><th>Cadastro</th><th></th></tr></thead><tbody id="tabUsuarios"></tbody></table></div>
+      <div id="msgUsuario"></div>
+    </section>
+
+    <section class="cartao">
+      <h2>Ajustar créditos ou redefinir senha</h2>
+      <div class="linha">
+        <div><label>E-mail do usuário</label><input type="email" id="uEmail"></div>
+        <div><label>Créditos a somar (negativo retira)</label><input type="number" id="uQtd" value="1"></div>
+      </div>
+      <button id="btnCreditos">Ajustar créditos</button>
+      <div class="linha">
+        <div><label>Nova senha (mín. 6 caracteres)</label><input type="text" id="uSenha"></div>
+      </div>
+      <button id="btnSenha">Redefinir senha</button>
+      <div id="msgAjuste"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let senha = "";
+  try { senha = sessionStorage.getItem("cc_admin") || ""; } catch {}
+
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const msg = (id, t, tipo) => ($(id).innerHTML = t ? '<div class="msg ' + tipo + '">' + esc(t) + "</div>" : "");
+  const data = (iso) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "—");
+
+  async function api(corpo) {
+    const r = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-senha": senha }, body: JSON.stringify(corpo) });
+    const d = await r.json().catch(() => ({ erro: "Resposta inválida." }));
+    return { ok: r.ok, status: r.status, d };
+  }
+
+  async function carregar() {
+    const r = await api({ acao: "painel" });
+    if (!r.ok) {
+      $("app").hidden = true; $("login").hidden = false;
+      if (senha) msg("msgLogin", r.d.erro, "erro");
+      return;
+    }
+    try { sessionStorage.setItem("cc_admin", senha); } catch {}
+    $("login").hidden = true; $("app").hidden = false;
+    const { usuarios, vouchers } = r.d;
+    $("kUsuarios").textContent = usuarios.length;
+    $("kAnalises").textContent = usuarios.reduce((s, u) => s + (u.analises || 0), 0);
+    $("kCreditos").textContent = usuarios.reduce((s, u) => s + (u.creditos || 0), 0);
+
+    $("tabVouchers").innerHTML = vouchers.length ? vouchers.map((v) => {
+      const ativo = v.ativo !== "0";
+      return "<tr><td><b>" + esc(v.codigo) + "</b></td><td>" + esc(v.creditos) + "</td><td>" + esc(v.usos) + " / " + (v.usos_max === "0" ? "∞" : esc(v.usos_max)) +
+        "</td><td>" + (v.validade ? new Date(v.validade + "T12:00").toLocaleDateString("pt-BR") : "—") + "</td><td>" + esc(v.descricao) + "</td><td>" + (ativo ? "Ativo" : "Desativado") +
+        "</td><td>" + (ativo ? '<button class="sec" data-desativar="' + esc(v.codigo) + '">Desativar</button>' : "") + "</td></tr>";
+    }).join("") : '<tr><td colspan="7">Nenhum voucher ainda.</td></tr>';
+
+    $("tabUsuarios").innerHTML = usuarios.length ? usuarios.map((u) =>
+      "<tr><td>" + esc(u.nome) + "</td><td>" + esc(u.email) + "</td><td>" + u.creditos + "</td><td>" + u.analises + "</td><td>" + data(u.criado) +
+      '</td><td><button class="sec" data-usar="' + esc(u.email) + '">Selecionar</button></td></tr>'
+    ).join("") : '<tr><td colspan="6">Nenhum usuário ainda.</td></tr>';
+  }
+
+  $("formLogin").onsubmit = (e) => { e.preventDefault(); senha = $("senhaAdmin").value; carregar(); };
+
+  $("formVoucher").onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await api({ acao: "criar_voucher", creditos: $("vCreditos").value, usos_max: $("vUsos").value, validade: $("vValidade").value,
+      codigo: $("vCodigo").value, descricao: $("vDescricao").value });
+    if (!r.ok) { msg("msgVoucher", r.d.erro, "erro"); return; }
+    $("msgVoucher").innerHTML = '<div class="msg ok">Voucher criado:<br><span class="codigo-novo">' + esc(r.d.codigo) + "</span></div>";
+    $("vCodigo").value = ""; $("vDescricao").value = "";
+    carregar();
+  };
+
+  document.addEventListener("click", async (e) => {
+    const d = e.target.closest("[data-desativar]");
+    if (d) { await api({ acao: "desativar_voucher", codigo: d.dataset.desativar }); carregar(); }
+    const u = e.target.closest("[data-usar]");
+    if (u) { $("uEmail").value = u.dataset.usar; $("uEmail").scrollIntoView({ behavior: "smooth", block: "center" }); }
+  });
+
+  $("btnCreditos").onclick = async () => {
+    const r = await api({ acao: "ajustar_creditos", email: $("uEmail").value, quantidade: $("uQtd").value });
+    msg("msgAjuste", r.ok ? "Créditos atualizados. Saldo agora: " + r.d.creditos : r.d.erro, r.ok ? "ok" : "erro");
+    if (r.ok) carregar();
+  };
+  $("btnSenha").onclick = async () => {
+    const r = await api({ acao: "redefinir_senha", email: $("uEmail").value, nova_senha: $("uSenha").value });
+    msg("msgAjuste", r.ok ? "Senha redefinida. Passe a nova senha para o cliente." : r.d.erro, r.ok ? "ok" : "erro");
+    if (r.ok) $("uSenha").value = "";
+  };
+
+  if (senha) carregar();
+})();
+</script>
+</body>
+</html>
