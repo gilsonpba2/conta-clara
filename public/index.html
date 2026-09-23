@@ -413,7 +413,11 @@
     if (token) opcoes.headers.Authorization = "Bearer " + token;
     if (corpo) { opcoes.headers["Content-Type"] = "application/json"; opcoes.body = JSON.stringify(corpo); }
     const r = await fetch(caminho, opcoes);
-    const dados = await r.json().catch(() => ({ erro: "Resposta inválida do servidor." }));
+    const dados = await r.json().catch(() => ({
+      erro: r.status === 504 ? "A análise demorou demais e foi interrompida. Nenhum crédito foi usado. Tente de novo."
+        : r.status === 413 ? "O arquivo é grande demais. Tente enviar uma foto da fatura."
+        : "O servidor respondeu com erro " + r.status + ". Nenhum crédito foi usado. Tente de novo.",
+    }));
     if (r.status === 401 && token && caminho !== "/api/conta") { sair(); }
     return { ok: r.ok, status: r.status, dados };
   }

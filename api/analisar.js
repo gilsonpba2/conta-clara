@@ -110,13 +110,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ erro: "Envie uma foto (JPG, PNG) ou um PDF da fatura." });
   }
 
-  // Desconta 1 crédito antes de chamar a IA; devolve se algo der errado
-  const restante = await redis("DECR", `creditos:${email}`);
-  if (restante < 0) {
-    await redis("INCR", `creditos:${email}`);
+  // Confere o saldo antes; o crédito só é descontado depois que a análise der certo
+  const saldo = parseInt((await redis("GET", `creditos:${email}`)) || "0", 10);
+  if (saldo < 1) {
     return res.status(402).json({ erro: "Você não tem créditos. Use um voucher ou fale com a gente para comprar.", creditos: 0 });
   }
-  const devolver = () => redis("INCR", `creditos:${email}`).catch(() => {});
+  const restante = saldo;
 
   const blocoArquivo =
     tipo === "application/pdf"
@@ -137,8 +136,7 @@ export default async function handler(req, res) {
 
     if (!resposta.ok) {
       console.error("Erro da API:", resposta.status, await resposta.text());
-      await devolver();
-      return res.status(502).json({ erro: "Não consegui analisar agora. Seu crédito foi devolvido. Tente de novo em instantes." });
+      return res.status(502).json({ erro: "Não consegui analisar agora. Nenhum crédito foi usado. Tente de novo em instantes." });
     }
 
     const dados = await resposta.json();
@@ -147,14 +145,16 @@ export default async function handler(req, res) {
 
     if (!analise) {
       console.error("Resposta sem JSON válido:", texto);
-      await devolver();
-      return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Seu crédito foi devolvido. Tente outra foto." });
+      return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Nenhum crédito foi usado. Tente outra foto." });
     }
 
     if (analise.legivel === false) {
-      await devolver();
-      return res.status(200).json({ ...analise, creditos: restante + 1 });
+      return res.status(200).json({ ...analise, creditos: restante });
     }
+
+    // Análise concluída: agora sim desconta 1 crédito (nunca deixa ficar negativo)
+    let creditos = await redis("DECR", `creditos:${email}`);
+    if (creditos < 0) creditos = await redis("INCR", `creditos:${email}`);
 
     try {
       await salvarHistorico(email, analise);
@@ -162,11 +162,10 @@ export default async function handler(req, res) {
       console.error("Falha ao salvar histórico:", e); // não impede o cliente de ver o resultado
     }
 
-    return res.status(200).json({ ...analise, creditos: restante });
+    return res.status(200).json({ ...analise, creditos });
   } catch (e) {
     console.error(e);
-    await devolver();
-    return res.status(500).json({ erro: "Erro inesperado no servidor. Seu crédito foi devolvido." });
+    return res.status(500).json({ erro: "Erro inesperado no servidor. Nenhum crédito foi usado." });
   }
 }
 

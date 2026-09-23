@@ -1,5 +1,5 @@
 {
   "functions": {
-    "api/analisar.js": { "maxDuration": 60 }
+    "api/analisar.js": { "maxDuration": 300 }
   }
 }
