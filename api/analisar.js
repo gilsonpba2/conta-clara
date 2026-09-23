@@ -41,6 +41,8 @@ FATURAS DA EQUATORIAL — COMO LER
 - Os dados de GD do mês ficam no quadro "MENSAGENS IMPORTANTES": GERAÇÃO CICLO, EXCEDENTE RECEBIDO, CRÉDITO RECEBIDO KWH, SALDO KWH (P, FP, HR), SALDO A EXPIRAR EM 30/60 DIAS, CADASTRO RATEIO. Some P+FP+HR quando vier separado.
 - O quadro "Histórico de consumo dos últimos meses" (normalmente na página 3) tem a coluna ENERGIA INJETADA (Ponta e Fora Ponta): use a soma para preencher geracao_distribuida.historico[].injetada_kwh em cada mês. Use a soma de Consumo Faturado Ponta + Fora Ponta + Horário Reservado para historico[].consumo_kwh.
 - Em grupo A, consumo_kwh do mês = soma dos postos (P + FP + HR).
+- Em grupo A, preencha o bloco "grupo_a": preços unitários com tributos de TUSD e TE por posto, bandeira, todos os dados de demanda e o histórico mês a mês de demanda medida (ponta e fora ponta) e consumo por posto (ponta, fora ponta, horário reservado). Copie os números exatamente como estão na fatura.
+- Só diga que houve ultrapassagem de demanda se a medida passou de 5% acima da contratada (ex.: 176,9 kW com 175 contratados = 101% → dentro da tolerância, NÃO houve ultrapassagem). Faça a conta antes de escrever.
 - Ignore páginas de comprovante de pagamento.
 
 LISTA DE ITENS — seja objetivo
@@ -119,6 +121,46 @@ const FERRAMENTA = {
             type: "array",
             items: { type: "object", required: ["mes_iso"],
               properties: { mes_iso: { type: "string", description: "AAAA-MM" }, injetada_kwh: N, compensada_kwh: N, saldo_kwh: N } },
+          },
+        },
+      },
+      grupo_a: {
+        type: ["object", "null"],
+        description: "Preencha só em faturas do Grupo A (média/alta tensão). null para Grupo B.",
+        properties: {
+          subgrupo: { ...T, description: "ex.: A4" },
+          modalidade: { ...T, description: "verde ou azul" },
+          tarifas: {
+            type: "array",
+            description: "Preço unitário COM tributos (coluna 'Preço unit (R$) com tributos') do consumo em cada posto. Use as linhas de consumo (não compensado ou total), não as de bandeira nem SCEE.",
+            items: { type: "object", required: ["posto"],
+              properties: { posto: { type: "string", enum: ["P", "FP", "HR"] }, tusd_kwh: N, te_kwh: N } },
+          },
+          bandeira: { type: ["object", "null"],
+            properties: { cor: T, adicional_kwh: { ...N, description: "preço unitário com tributos do adicional de bandeira" }, valor_reais: { ...N, description: "soma das linhas ADC BAND." } } },
+          demanda: { type: ["object", "null"],
+            properties: {
+              contratada_kw: { ...N, description: "Tarifa verde: demanda contratada. Tarifa azul: demanda contratada fora ponta." },
+              contratada_ponta_kw: { ...N, description: "Só tarifa azul" },
+              medida_p_kw: { ...N, description: "Demanda medida no mês na ponta (quadro do medidor, já multiplicada pela constante)" },
+              medida_fp_kw: { ...N, description: "Demanda medida no mês fora ponta" },
+              faturada_kw: { ...N, description: "Quantidade da linha DEMANDA faturada (fora ponta na azul)" },
+              faturada_ponta_kw: { ...N, description: "Só tarifa azul" },
+              preco_kw: { ...N, description: "Preço unitário com tributos da demanda (fora ponta na azul)" },
+              preco_ponta_kw: { ...N, description: "Só tarifa azul" },
+              valor_demanda_reais: { ...N, description: "Soma das linhas de demanda faturada (sem ultrapassagem)" },
+              ultrapassagem_kw: { ...N, description: "kW de ultrapassagem cobrados, 0 se não houver" },
+              valor_ultrapassagem_reais: { ...N, description: "Soma das linhas de ultrapassagem, 0 se não houver" },
+            } },
+          historico: {
+            type: "array",
+            description: "Do quadro 'Histórico de consumo dos últimos meses': um item por mês.",
+            items: { type: "object", required: ["mes_iso"],
+              properties: {
+                mes_iso: { type: "string", description: "AAAA-MM" },
+                demanda_p_kw: N, demanda_fp_kw: N,
+                consumo_p_kwh: N, consumo_fp_kwh: N, consumo_hr_kwh: N,
+              } },
           },
         },
       },
@@ -205,6 +247,7 @@ export default async function handler(req, res) {
       return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Nenhum crédito foi usado. Tente de novo." });
     }
     analise = normalizarNumeros(analise);
+    calcularGrupoA(analise);
 
     if (analise.legivel === false) {
       return res.status(200).json({ ...analise, creditos: restante });
@@ -227,8 +270,67 @@ export default async function handler(req, res) {
   }
 }
 
+// ---------- Grupo A: contas feitas pelo código, não pela IA ----------
+const TOLERANCIA = 1.05; // ultrapassagem só acima de 5% da contratada
+const arred = (v, casas = 2) => Math.round(v * 10 ** casas) / 10 ** casas;
+
+function situacaoDemanda(medida, contratada) {
+  if (!(medida > 0) || !(contratada > 0)) return null;
+  const pct = medida / contratada;
+  const base = { medida_kw: medida, contratada_kw: contratada, percentual: arred(pct * 100, 1) };
+  if (pct > TOLERANCIA) return { ...base, situacao: "ultrapassou", excedente_kw: arred(medida - contratada, 2) };
+  if (pct >= 1) return { ...base, situacao: "tolerancia" };
+  return { ...base, situacao: "abaixo", sem_uso_kw: arred(contratada - medida, 2) };
+}
+
+function calcularGrupoA(a) {
+  const g = a.grupo_a;
+  if (!g || typeof g !== "object") return;
+  const azul = String(g.modalidade || "").toLowerCase().includes("azul");
+  const calc = { azul };
+
+  // 1. Tarifa por posto = TUSD + TE (com tributos)
+  const nomes = { P: "Ponta", FP: "Fora ponta", HR: "Horário reservado" };
+  calc.tarifas = ["P", "FP", "HR"].map((posto) => {
+    const t = (g.tarifas || []).find((x) => x.posto === posto);
+    if (!t || (!num(t.tusd_kwh) && !num(t.te_kwh))) return null;
+    const tusd = num(t.tusd_kwh) || 0, te = num(t.te_kwh) || 0;
+    return { posto, nome: nomes[posto], tusd_kwh: tusd, te_kwh: te, total_kwh: arred(tusd + te, 6) };
+  }).filter(Boolean);
+
+  // 2. Demanda: total pago e situação
+  const d = g.demanda || {};
+  const vDem = num(d.valor_demanda_reais) || 0, vUlt = num(d.valor_ultrapassagem_reais) || 0;
+  calc.demanda_total_reais = vDem || vUlt ? arred(vDem + vUlt) : null;
+  const p = num(d.medida_p_kw), fp = num(d.medida_fp_kw);
+  if (azul) {
+    calc.situacoes = [
+      { posto: "Ponta", ...situacaoDemanda(p, num(d.contratada_ponta_kw)) },
+      { posto: "Fora ponta", ...situacaoDemanda(fp, num(d.contratada_kw)) },
+    ].filter((s) => s.situacao);
+  } else {
+    // Tarifa verde: vale a maior demanda do mês
+    const maior = Math.max(p || 0, fp || 0) || num(d.faturada_kw);
+    const s = situacaoDemanda(maior, num(d.contratada_kw));
+    calc.situacoes = s ? [{ posto: null, ...s }] : [];
+  }
+
+  // 3. Meses do histórico que passaram da tolerância
+  const hist = Array.isArray(g.historico) ? g.historico.filter((h) => mesIsoValido(h.mes_iso)) : [];
+  calc.meses_ultrapassados = hist.filter((h) => {
+    if (azul) {
+      return (num(d.contratada_ponta_kw) && h.demanda_p_kw > d.contratada_ponta_kw * TOLERANCIA) ||
+             (num(d.contratada_kw) && h.demanda_fp_kw > d.contratada_kw * TOLERANCIA);
+    }
+    const m = Math.max(h.demanda_p_kw || 0, h.demanda_fp_kw || 0);
+    return num(d.contratada_kw) && m > d.contratada_kw * TOLERANCIA;
+  }).map((h) => h.mes_iso).sort();
+
+  g.calculado = calc;
+}
+
 // Converte números que vierem como texto brasileiro ("62.194,16", "R$ 1.030,37") em número de verdade
-const CAMPOS_NUMERICOS = /(_kwh|_reais|^valor|^valor_total|^consumo_kwh)$/;
+const CAMPOS_NUMERICOS = /(_kwh|_kw|_reais|^valor|^valor_total|^consumo_kwh)$/;
 function paraNumero(v) {
   if (typeof v !== "string") return v;
   let t = v.replace(/[R$\s]/g, "");
@@ -319,6 +421,24 @@ async function salvarHistorico(email, a) {
       campos.push(mes, JSON.stringify(final));
     });
     comandos.push(["HSET", `gd:${email}:${uc}`, ...campos]);
+  }
+
+  // Grupo A: demanda e consumo por posto mês a mês, e os dados do contrato mais recente
+  const g = a.grupo_a;
+  if (g && typeof g === "object") {
+    const campos = [];
+    for (const h of Array.isArray(g.historico) ? g.historico : []) {
+      if (!mesIsoValido(h.mes_iso)) continue;
+      const v = limparNulos({ demanda_p_kw: num(h.demanda_p_kw), demanda_fp_kw: num(h.demanda_fp_kw),
+        consumo_p_kwh: num(h.consumo_p_kwh), consumo_fp_kwh: num(h.consumo_fp_kwh), consumo_hr_kwh: num(h.consumo_hr_kwh) });
+      if (Object.keys(v).length) campos.push(h.mes_iso, JSON.stringify(v));
+    }
+    if (campos.length) comandos.push(["HSET", `ga:${email}:${uc}`, ...campos]);
+    const d = g.demanda || {};
+    comandos.push(["SET", `gainfo:${email}:${uc}`, JSON.stringify({
+      mes_iso: resumo.mes_iso, azul: Boolean(g.calculado?.azul), subgrupo: g.subgrupo || null, modalidade: g.modalidade || null,
+      contratada_kw: num(d.contratada_kw), contratada_ponta_kw: num(d.contratada_ponta_kw), tarifas: g.calculado?.tarifas || [],
+    })]);
   }
 
   await redisVarios(comandos);

@@ -26,9 +26,17 @@ export default async function handler(req, res) {
 
     const unidades = [];
     if (ucs && ucs.length) {
-      const gdBrutos = await redisVarios(ucs.map((uc) => ["HGETALL", `gd:${email}:${uc}`]));
+      const brutos = await redisVarios(ucs.flatMap((uc) => [
+        ["HGETALL", `gd:${email}:${uc}`], ["HGETALL", `ga:${email}:${uc}`], ["GET", `gainfo:${email}:${uc}`],
+      ]));
       ucs.forEach((uc, i) => {
-        const obj = paraObjeto(gdBrutos[i]) || {};
+        const obj = paraObjeto(brutos[i * 3]) || {};
+        const gaObj = paraObjeto(brutos[i * 3 + 1]) || {};
+        const gaInfo = brutos[i * 3 + 2] ? JSON.parse(brutos[i * 3 + 2]) : null;
+        const grupoA = gaInfo ? {
+          ...gaInfo,
+          meses: Object.entries(gaObj).map(([mes, v]) => ({ mes, ...JSON.parse(v) })).sort((a, b) => a.mes.localeCompare(b.mes)),
+        } : null;
         const meses = Object.entries(obj)
           .map(([mes, v]) => ({ mes, ...JSON.parse(v) }))
           .sort((a, b) => b.mes.localeCompare(a.mes));
@@ -38,6 +46,7 @@ export default async function handler(req, res) {
           saldo_atual_kwh: comSaldo ? comSaldo.saldo_kwh : null,
           saldo_referencia: comSaldo ? comSaldo.mes : null,
           meses,
+          grupo_a: grupoA,
         });
       });
     }
