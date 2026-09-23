@@ -30,6 +30,24 @@ CONHECIMENTO DE APOIO
 - Lei 14.300/2022: sistemas com pedido de conexão feito após 07/01/2023 pagam uma parte da TUSD Fio B sobre a energia compensada, de forma escalonada (15% em 2023, 30% em 2024, 45% em 2025, 60% em 2026, 75% em 2027, 90% em 2028). Só mencione isso se a fatura mostrar GD.
 - Grupo A (média tensão): demanda contratada, ultrapassagem de demanda, horário de ponta e fora de ponta, energia reativa excedente (fator de potência abaixo de 0,92).
 
+FATURAS DA EQUATORIAL — COMO LER
+- Postos horários: P = ponta, FP = fora ponta, HR = horário reservado (horário especial para irrigação e aquicultura no meio rural).
+- "CONSUMO NÃO COMPENSADO ... TUSD/TE": energia consumida naquele posto que NÃO foi abatida por créditos de GD.
+- "CONSUMO ... SCEE" e "PARCELA TE ... SCEE": cobrança sobre a energia que foi compensada pelo Sistema de Compensação (SCEE).
+- "INJEÇÃO SCEE ... TE/TUSD": crédito da energia injetada (valor negativo). "GD I" = sistema com direito adquirido (regra antiga, sem Fio B até 2045); "GD II" = regra da Lei 14.300.
+- "ADC BAND. AMARELA/VERMELHA": adicional de bandeira tarifária.
+- "UFER": energia reativa excedente (kVArh), cobrada quando o fator de potência fica abaixo de 0,92. "DMCR": demanda reativa excedente.
+- "DEMANDA": demanda medida faturada (kW). A demanda contratada aparece em "Grandezas Contratadas". Ultrapassagem só é cobrada quando a medida passa de 5% acima da contratada.
+- Os dados de GD do mês ficam no quadro "MENSAGENS IMPORTANTES": GERAÇÃO CICLO, EXCEDENTE RECEBIDO, CRÉDITO RECEBIDO KWH, SALDO KWH (P, FP, HR), SALDO A EXPIRAR EM 30/60 DIAS, CADASTRO RATEIO. Some P+FP+HR quando vier separado.
+- O quadro "Histórico de consumo dos últimos meses" (normalmente na página 3) tem a coluna ENERGIA INJETADA (Ponta e Fora Ponta): use a soma para preencher geracao_distribuida.historico[].injetada_kwh em cada mês. Use a soma de Consumo Faturado Ponta + Fora Ponta + Horário Reservado para historico[].consumo_kwh.
+- Em grupo A, consumo_kwh do mês = soma dos postos (P + FP + HR).
+- Ignore páginas de comprovante de pagamento.
+
+LISTA DE ITENS — seja objetivo
+- Junte na mesma linha as cobranças do mesmo tipo em postos diferentes e TE+TUSD (ex.: "Consumo não compensado (ponta, fora ponta e reservado)"), somando os valores. Na explicação, cite o detalhe que importa (ex.: quanto veio de cada posto).
+- No máximo 12 itens. Explicações de no máximo 2 frases curtas.
+- No máximo 5 alertas e 6 oportunidades.
+
 ALERTAS (fatos da fatura que merecem atenção; inclua só os que se aplicam)
 - Consumo do mês muito acima da média do histórico da própria fatura.
 - Cobrança de multa, juros ou religação.
@@ -45,53 +63,85 @@ OPORTUNIDADES DE ECONOMIA (o que o cliente pode fazer para pagar menos; inclua t
 - Multa ou juros: pagar em dia ou colocar em débito automático.
 - Leitura pela média repetida: pedir leitura real à distribuidora.
 - Cobrança duplicada, classe tarifária que não combina com o uso, ou valor que não bate: sugerir contestar junto à distribuidora com apoio técnico.
-- Grupo A: demanda contratada acima da demanda medida (pagando por demanda sem usar), ultrapassagem de demanda (contratar mais), energia reativa excedente (instalar banco de capacitores), avaliar mercado livre de energia.
+- Grupo A — reativo: se houver UFER ou DMCR, sugerir correção do fator de potência (banco de capacitores). Economia estimada = soma dos valores de UFER e DMCR da fatura.
+- Grupo A — demanda: compare a demanda contratada com a medida no mês e no histórico. Se a medida passou de 5% acima da contratada em algum mês, há ultrapassagem (multa); sugerir revisar o contrato. Se a medida ficou sempre bem abaixo, está pagando demanda sem usar.
+- Grupo A — ponta: consumo alto na ponta na tarifa verde encarece a conta; sugerir deslocar cargas para fora da ponta.
+- Rural com consumo no horário reservado (HR) sem linha de desconto de irrigação/aquicultura e com a mesma tarifa do fora ponta: sugerir verificar o enquadramento no desconto para irrigação e aquicultura (REN ANEEL 1.000/2021). Não estime a economia sem ver a tarifa com desconto.
+- Grupo A com consumo alto: avaliar migração para o mercado livre de energia.
 - Bandeira vermelha frequente com consumo alto: deslocar uso de equipamentos pesados e considerar GD.
 Use economia_estimada_mensal_reais = null quando não der para estimar com os dados da fatura. Nunca prometa economia; é estimativa.
 
 FORMATO DA RESPOSTA
-Responda APENAS com um JSON válido, sem nenhum texto antes ou depois, neste formato:
-{
-  "legivel": true,
-  "motivo_ilegivel": null,
-  "distribuidora": "texto ou null",
-  "unidade_consumidora": "número da UC ou null",
-  "mes_referencia": "ex.: 08/2026 ou null",
-  "mes_referencia_iso": "ex.: 2026-08 ou null",
-  "vencimento": "dd/mm/aaaa ou null",
-  "valor_total": 0.0,
-  "consumo_kwh": 0,
-  "classe": "ex.: Residencial, Comercial ou null",
-  "tipo_ligacao": "Monofásico, Bifásico, Trifásico, Grupo A ou null",
-  "resumo": "2 a 4 frases explicando a conta como se fosse para um vizinho",
-  "itens": [
-    { "descricao": "nome do item como aparece na fatura", "valor": 0.0, "explicacao": "o que é, em uma ou duas frases" }
-  ],
-  "geracao_distribuida": {
-    "possui": false,
-    "modalidade": "Autoconsumo local, Autoconsumo remoto, Geração compartilhada, Unidade beneficiária ou null",
-    "energia_injetada_kwh": null,
-    "creditos_recebidos_kwh": null,
-    "energia_compensada_kwh": null,
-    "valor_creditos_reais": null,
-    "saldo_creditos_kwh": null,
-    "creditos_a_expirar_kwh": null,
-    "explicacao": "texto ou null",
-    "historico": [ { "mes_iso": "AAAA-MM", "injetada_kwh": null, "compensada_kwh": null, "saldo_kwh": null } ]
-  },
-  "historico": [ { "mes": "MMM/AA", "mes_iso": "AAAA-MM", "consumo_kwh": 0 } ],
-  "alertas": [ "texto curto" ],
-  "oportunidades": [
-    { "tipo": "gd | creditos | defeito | erro_fatura | multa | leitura | demanda | reativo | mercado_livre | habito | outro",
-      "titulo": "frase curta", "descricao": "o que é e o que fazer, em 2 ou 3 frases",
-      "economia_estimada_mensal_reais": null, "prioridade": "alta | media | baixa" }
-  ]
-}
-Em "valor_creditos_reais" coloque o valor em reais abatido pelos créditos de energia injetada/compensada neste mês (soma dos itens de energia injetada, em positivo), se aparecer na fatura.
-Em "geracao_distribuida.historico" inclua os meses que a fatura mostrar com dados de energia injetada, compensada ou saldo (deixe vazio se não houver).
-Se a imagem não for uma fatura de energia ou estiver ilegível, responda com "legivel": false, explique o motivo em "motivo_ilegivel" e deixe os demais campos null ou vazios.
+Registre o resultado chamando a ferramenta "registrar_analise". Não escreva texto fora dela.
+- Números sempre no formato numérico com ponto decimal e sem separador de milhar: 62194.16 (nunca "62.194,16").
+- "valor_creditos_reais": valor em reais abatido pelos créditos de energia injetada/compensada neste mês (soma dos itens de injeção, em positivo), se aparecer na fatura.
+- "geracao_distribuida.historico": os meses que a fatura mostrar com energia injetada, compensada ou saldo (vazio se não houver).
+- Se a imagem não for uma fatura de energia ou estiver ilegível: "legivel" = false, explique em "motivo_ilegivel" e deixe o resto vazio.
 `;
 // ===========================================================================
+
+// Estrutura obrigatória da resposta. A IA preenche via "ferramenta", o que garante dados bem formados.
+const N = { type: ["number", "null"] };
+const T = { type: ["string", "null"] };
+const FERRAMENTA = {
+  name: "registrar_analise",
+  description: "Registra a análise completa da fatura de energia.",
+  input_schema: {
+    type: "object",
+    required: ["legivel", "resumo", "itens", "geracao_distribuida", "historico", "alertas", "oportunidades"],
+    properties: {
+      legivel: { type: "boolean" },
+      motivo_ilegivel: T,
+      distribuidora: T,
+      unidade_consumidora: { ...T, description: "Número da UC" },
+      mes_referencia: { ...T, description: "ex.: 08/2026" },
+      mes_referencia_iso: { ...T, description: "ex.: 2026-08" },
+      vencimento: { ...T, description: "dd/mm/aaaa" },
+      valor_total: N,
+      consumo_kwh: N,
+      classe: T,
+      tipo_ligacao: { ...T, description: "Monofásico, Bifásico, Trifásico ou Grupo A (informe o subgrupo e a modalidade, ex.: A4 verde)" },
+      resumo: { type: "string", description: "2 a 4 frases explicando a conta como se fosse para um vizinho" },
+      itens: {
+        type: "array", maxItems: 14,
+        items: { type: "object", required: ["descricao", "valor", "explicacao"],
+          properties: { descricao: { type: "string" }, valor: N, explicacao: { type: "string" } } },
+      },
+      geracao_distribuida: {
+        type: "object", required: ["possui"],
+        properties: {
+          possui: { type: "boolean" },
+          modalidade: { ...T, description: "Autoconsumo local, Autoconsumo remoto, Geração compartilhada, Unidade beneficiária; cite GD I ou GD II se aparecer" },
+          energia_injetada_kwh: N, creditos_recebidos_kwh: N, energia_compensada_kwh: N,
+          valor_creditos_reais: N, saldo_creditos_kwh: N, creditos_a_expirar_kwh: N,
+          explicacao: T,
+          historico: {
+            type: "array",
+            items: { type: "object", required: ["mes_iso"],
+              properties: { mes_iso: { type: "string", description: "AAAA-MM" }, injetada_kwh: N, compensada_kwh: N, saldo_kwh: N } },
+          },
+        },
+      },
+      historico: {
+        type: "array",
+        items: { type: "object", required: ["mes", "consumo_kwh"],
+          properties: { mes: { type: "string", description: "MMM/AA" }, mes_iso: { type: "string", description: "AAAA-MM" }, consumo_kwh: N } },
+      },
+      alertas: { type: "array", maxItems: 6, items: { type: "string" } },
+      oportunidades: {
+        type: "array", maxItems: 7,
+        items: { type: "object", required: ["tipo", "titulo", "descricao", "prioridade"],
+          properties: {
+            tipo: { type: "string", enum: ["gd", "creditos", "defeito", "erro_fatura", "multa", "leitura", "demanda", "reativo", "ponta", "irrigante", "mercado_livre", "habito", "outro"] },
+            titulo: { type: "string" },
+            descricao: { type: "string", description: "o que é e o que fazer, em 2 ou 3 frases" },
+            economia_estimada_mensal_reais: N,
+            prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+          } },
+      },
+    },
+  },
+};
 
 const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
@@ -128,9 +178,11 @@ export default async function handler(req, res) {
       headers: { "x-api-key": chave, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 6000,
+        max_tokens: 16000,
         system: INSTRUCOES,
-        messages: [{ role: "user", content: [blocoArquivo, { type: "text", text: "Analise esta fatura de energia e responda no formato JSON pedido." }] }],
+        tools: [FERRAMENTA],
+        tool_choice: { type: "tool", name: FERRAMENTA.name },
+        messages: [{ role: "user", content: [blocoArquivo, { type: "text", text: "Analise esta fatura de energia e registre o resultado com a ferramenta registrar_analise." }] }],
       }),
     });
 
@@ -140,13 +192,19 @@ export default async function handler(req, res) {
     }
 
     const dados = await resposta.json();
-    const texto = (dados.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
-    const analise = extrairJson(texto);
-
+    const blocoFerramenta = (dados.content || []).find((b) => b.type === "tool_use");
+    let analise = blocoFerramenta ? blocoFerramenta.input : null;
     if (!analise) {
-      console.error("Resposta sem JSON válido:", texto);
-      return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Nenhum crédito foi usado. Tente outra foto." });
+      // Plano B: se vier como texto, tenta extrair o JSON
+      const texto = (dados.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+      analise = extrairJson(texto);
     }
+
+    if (!analise || typeof analise !== "object" || dados.stop_reason === "max_tokens") {
+      console.error("Resposta incompleta. stop_reason:", dados.stop_reason, "uso:", JSON.stringify(dados.usage), "conteúdo:", JSON.stringify(dados.content).slice(0, 3000));
+      return res.status(502).json({ erro: "A leitura da fatura veio incompleta. Nenhum crédito foi usado. Tente de novo." });
+    }
+    analise = normalizarNumeros(analise);
 
     if (analise.legivel === false) {
       return res.status(200).json({ ...analise, creditos: restante });
@@ -167,6 +225,27 @@ export default async function handler(req, res) {
     console.error(e);
     return res.status(500).json({ erro: "Erro inesperado no servidor. Nenhum crédito foi usado." });
   }
+}
+
+// Converte números que vierem como texto brasileiro ("62.194,16", "R$ 1.030,37") em número de verdade
+const CAMPOS_NUMERICOS = /(_kwh|_reais|^valor|^valor_total|^consumo_kwh)$/;
+function paraNumero(v) {
+  if (typeof v !== "string") return v;
+  let t = v.replace(/[R$\s]/g, "");
+  if (!/^-?[\d.,]+$/.test(t)) return v;
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, ""); // "1.340" = mil trezentos e quarenta
+  const n = Number(t);
+  return isFinite(n) ? n : v;
+}
+function normalizarNumeros(o) {
+  if (Array.isArray(o)) return o.map(normalizarNumeros);
+  if (o && typeof o === "object") {
+    const r = {};
+    for (const [k, v] of Object.entries(o)) r[k] = CAMPOS_NUMERICOS.test(k) ? paraNumero(v) : normalizarNumeros(v);
+    return r;
+  }
+  return o;
 }
 
 function extrairJson(texto) {
