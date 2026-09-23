@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conta Clara</title>
+<meta name="description" content="Tire uma foto da sua conta de luz e entenda cada item que você paga.">
+<meta name="theme-color" content="#0b5cab">
+<style>
+  :root {
+    --azul: #0b5cab;
+    --azul-escuro: #083f76;
+    --amarelo: #f5b700;
+    --fundo: #f4f6f9;
+    --cartao: #ffffff;
+    --texto: #1c2430;
+    --suave: #5b6675;
+    --borda: #e1e6ed;
+    --alerta-fundo: #fff5d6;
+    --alerta-borda: #f0c94a;
+    --verde: #1f8a4c;
+    --erro: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--fundo);
+    color: var(--texto);
+    line-height: 1.5;
+  }
+  header {
+    background: var(--azul);
+    color: #fff;
+    padding: 18px 16px;
+  }
+  header .marca { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+  header .logo {
+    width: 36px; height: 36px; border-radius: 10px; background: var(--amarelo);
+    display: grid; place-items: center; color: var(--azul-escuro); font-weight: 800; font-size: 20px;
+  }
+  header h1 { margin: 0; font-size: 1.35rem; }
+  header p { margin: 0; font-size: .9rem; opacity: .85; }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; }
+  .cartao {
+    background: var(--cartao); border: 1px solid var(--borda); border-radius: 14px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; }
+  .envio { text-align: center; }
+  .envio p { color: var(--suave); margin: 0 0 16px; }
+  .botoes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .botao {
+    appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 600;
+    padding: 14px 20px; border-radius: 10px; min-width: 160px;
+  }
+  .primario { background: var(--azul); color: #fff; }
+  .primario:hover { background: var(--azul-escuro); }
+  .secundario { background: #e8eff8; color: var(--azul-escuro); }
+  .botao:disabled { opacity: .5; cursor: default; }
+  input[type=file] { display: none; }
+  .previa { margin-top: 16px; }
+  .previa img { max-width: 100%; max-height: 260px; border-radius: 8px; border: 1px solid var(--borda); }
+  .previa .nome { font-size: .9rem; color: var(--suave); margin-top: 6px; }
+  .codigo { margin-top: 16px; display: none; }
+  .codigo input {
+    font: inherit; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 8px; width: 100%; max-width: 260px;
+  }
+  .carregando { display: none; text-align: center; padding: 28px 20px; }
+  .spinner {
+    width: 38px; height: 38px; border: 4px solid #d6e2f1; border-top-color: var(--azul);
+    border-radius: 50%; margin: 0 auto 12px; animation: gira 0.9s linear infinite;
+  }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  .erro { display: none; color: var(--erro); background: #fdecea; border: 1px solid #f3c2bd; }
+  #resultado { display: none; }
+  .total { display: flex; flex-wrap: wrap; gap: 12px; }
+  .kpi { flex: 1 1 140px; background: #f0f5fb; border-radius: 10px; padding: 12px 14px; }
+  .kpi .rotulo { font-size: .8rem; color: var(--suave); }
+  .kpi .valor { font-size: 1.3rem; font-weight: 700; color: var(--azul-escuro); }
+  .dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; margin-top: 14px; font-size: .9rem; }
+  .dados span { color: var(--suave); display: block; font-size: .8rem; }
+  .resumo { font-size: 1.02rem; margin: 0; }
+  .alertas { background: var(--alerta-fundo); border-color: var(--alerta-borda); }
+  .alertas ul { margin: 0; padding-left: 20px; }
+  .alertas li { margin-bottom: 6px; }
+  .item { border-top: 1px solid var(--borda); padding: 12px 0; }
+  .item:first-of-type { border-top: 0; padding-top: 0; }
+  .item-topo { display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
+  .item-topo .v { white-space: nowrap; }
+  .item p { margin: 4px 0 0; color: var(--suave); font-size: .93rem; }
+  .gd { border-left: 4px solid var(--verde); }
+  .grafico { display: flex; align-items: flex-end; gap: 4px; height: 140px; margin-top: 8px; }
+  .barra { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+  .barra .b { width: 100%; background: #9dbde3; border-radius: 4px 4px 0 0; }
+  .barra.atual .b { background: var(--azul); }
+  .barra .m { font-size: .65rem; color: var(--suave); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .barra .n { font-size: .65rem; color: var(--suave); }
+  .rodape { font-size: .8rem; color: var(--suave); text-align: center; margin-top: 24px; }
+  .rodape a { color: var(--azul); }
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Conta Clara</h1>
+      <p>Entenda cada item da sua conta de luz</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="cartao envio" id="envio">
+    <h2>Envie sua fatura</h2>
+    <p>Tire uma foto da conta inteira, bem iluminada, ou envie o PDF.</p>
+    <div class="botoes">
+      <button class="botao primario" id="btnFoto">📷 Tirar foto</button>
+      <button class="botao secundario" id="btnArquivo">📄 Escolher arquivo</button>
+    </div>
+    <input type="file" id="inputFoto" accept="image/*" capture="environment">
+    <input type="file" id="inputArquivo" accept="image/*,application/pdf">
+    <div class="previa" id="previa"></div>
+    <div class="codigo" id="caixaCodigo">
+      <p style="margin:0 0 6px">Digite o código de acesso:</p>
+      <input type="text" id="codigo" autocomplete="off">
+    </div>
+    <div class="botoes" style="margin-top:16px">
+      <button class="botao primario" id="btnAnalisar" disabled>Analisar minha conta</button>
+    </div>
+  </section>
+
+  <section class="cartao carregando" id="carregando">
+    <div class="spinner"></div>
+    <div>Lendo sua fatura… isso leva uns 20 segundos.</div>
+  </section>
+
+  <section class="cartao erro" id="erro"></section>
+
+  <div id="resultado"></div>
+
+  <p class="rodape">
+    A explicação é gerada automaticamente e pode conter erros. Confira sempre com a fatura original.<br>
+    Não guardamos a imagem da sua conta.<br>
+    Dúvidas sobre sua conta ou energia solar? <a href="https://wa.me/5562996207352" target="_blank" rel="noopener">Fale com a Meta Soluções em Energia</a>
+  </p>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const LIMITE_PDF = 3 * 1024 * 1024; // 3 MB
+  let arquivoPronto = null; // { base64, tipo }
+
+  function lerCodigoSalvo() { try { return localStorage.getItem("cc_codigo") || ""; } catch { return ""; } }
+  function salvarCodigo(c) { try { localStorage.setItem("cc_codigo", c); } catch {} }
+  $("codigo").value = lerCodigoSalvo();
+  if ($("codigo").value) $("caixaCodigo").style.display = "block";
+
+  $("btnFoto").onclick = () => $("inputFoto").click();
+  $("btnArquivo").onclick = () => $("inputArquivo").click();
+  $("inputFoto").onchange = (e) => prepararArquivo(e.target.files[0]);
+  $("inputArquivo").onchange = (e) => prepararArquivo(e.target.files[0]);
+  $("btnAnalisar").onclick = analisar;
+
+  function mostrarErro(msg) {
+    $("erro").textContent = msg;
+    $("erro").style.display = msg ? "block" : "none";
+  }
+
+  async function prepararArquivo(arquivo) {
+    mostrarErro("");
+    arquivoPronto = null;
+    $("btnAnalisar").disabled = true;
+    $("previa").innerHTML = "";
+    if (!arquivo) return;
+
+    try {
+      if (arquivo.type === "application/pdf") {
+        if (arquivo.size > LIMITE_PDF) {
+          mostrarErro("O PDF passa de 3 MB. Tente enviar uma foto da fatura.");
+          return;
+        }
+        const base64 = await paraBase64(arquivo);
+        arquivoPronto = { base64, tipo: "application/pdf" };
+        $("previa").innerHTML = '<div class="nome">📄 ' + escapar(arquivo.name) + "</div>";
+      } else if (arquivo.type.startsWith("image/")) {
+        const dataUrl = await reduzirImagem(arquivo, 1800, 0.85);
+        arquivoPronto = { base64: dataUrl.split(",")[1], tipo: "image/jpeg" };
+        $("previa").innerHTML = '<img alt="Prévia da fatura" src="' + dataUrl + '">';
+      } else {
+        mostrarErro("Formato não aceito. Envie uma foto ou um PDF.");
+        return;
+      }
+      $("btnAnalisar").disabled = false;
+    } catch (e) {
+      mostrarErro("Não consegui abrir esse arquivo. Tente outra foto.");
+    }
+  }
+
+  function paraBase64(arquivo) {
+    return new Promise((ok, falha) => {
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).split(",")[1]);
+      r.onerror = falha;
+      r.readAsDataURL(arquivo);
+    });
+  }
+
+  // Reduz a foto para caber no limite do servidor e economizar custo da API
+  function reduzirImagem(arquivo, ladoMax, qualidade) {
+    return new Promise((ok, falha) => {
+      const url = URL.createObjectURL(arquivo);
+      const img = new Image();
+      img.onload = () => {
+        let { width: w, height: h } = img;
+        const escala = Math.min(1, ladoMax / Math.max(w, h));
+        w = Math.round(w * escala); h = Math.round(h * escala);
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        ok(c.toDataURL("image/jpeg", qualidade));
+      };
+      img.onerror = falha;
+      img.src = url;
+    });
+  }
+
+  async function analisar() {
+    if (!arquivoPronto) return;
+    mostrarErro("");
+    $("resultado").style.display = "none";
+    $("carregando").style.display = "block";
+    $("btnAnalisar").disabled = true;
+
+    const codigo = $("codigo").value.trim();
+    try {
+      const r = await fetch("/api/analisar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ arquivo: arquivoPronto.base64, tipo: arquivoPronto.tipo, codigo }),
+      });
+      const dados = await r.json().catch(() => ({ erro: "Resposta inválida do servidor." }));
+      if (r.status === 401) {
+        $("caixaCodigo").style.display = "block";
+        mostrarErro(codigo ? "Código de acesso incorreto." : "Este site pede um código de acesso. Digite abaixo e tente de novo.");
+        return;
+      }
+      if (!r.ok) { mostrarErro(dados.erro || "Algo deu errado. Tente de novo."); return; }
+      if (codigo) salvarCodigo(codigo);
+      if (dados.legivel === false) {
+        mostrarErro(dados.motivo_ilegivel || "Não consegui ler a fatura. Tente uma foto mais nítida e com a conta inteira.");
+        return;
+      }
+      mostrarResultado(dados);
+    } catch (e) {
+      mostrarErro("Sem conexão com o servidor. Verifique sua internet.");
+    } finally {
+      $("carregando").style.display = "none";
+      $("btnAnalisar").disabled = !arquivoPronto;
+    }
+  }
+
+  function escapar(t) {
+    return String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function reais(v) {
+    return typeof v === "number" ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
+  }
+  function kwh(v) {
+    return typeof v === "number" ? v.toLocaleString("pt-BR") + " kWh" : "—";
+  }
+
+  function mostrarResultado(d) {
+    let html = "";
+
+    html += '<section class="cartao"><h2>Resumo da sua conta</h2><div class="total">' +
+      '<div class="kpi"><div class="rotulo">Total a pagar</div><div class="valor">' + reais(d.valor_total) + "</div></div>" +
+      '<div class="kpi"><div class="rotulo">Consumo</div><div class="valor">' + kwh(d.consumo_kwh) + "</div></div>" +
+      "</div>";
+    const campos = [
+      ["Referência", d.mes_referencia], ["Vencimento", d.vencimento], ["Distribuidora", d.distribuidora],
+      ["Unidade consumidora", d.unidade_consumidora], ["Classe", d.classe], ["Ligação", d.tipo_ligacao],
+    ].filter(([, v]) => v);
+    if (campos.length) {
+      html += '<div class="dados">' + campos.map(([r, v]) => "<div><span>" + r + "</span>" + escapar(v) + "</div>").join("") + "</div>";
+    }
+    if (d.resumo) html += '<p class="resumo" style="margin-top:14px">' + escapar(d.resumo) + "</p>";
+    html += "</section>";
+
+    if (Array.isArray(d.alertas) && d.alertas.length) {
+      html += '<section class="cartao alertas"><h2>⚠️ Pontos de atenção</h2><ul>' +
+        d.alertas.map((a) => "<li>" + escapar(a) + "</li>").join("") + "</ul></section>";
+    }
+
+    const gd = d.geracao_distribuida;
+    if (gd && gd.possui) {
+      html += '<section class="cartao gd"><h2>☀️ Sua energia solar</h2><div class="total">' +
+        '<div class="kpi"><div class="rotulo">Injetada na rede</div><div class="valor">' + kwh(gd.energia_injetada_kwh) + "</div></div>" +
+        '<div class="kpi"><div class="rotulo">Compensada</div><div class="valor">' + kwh(gd.energia_compensada_kwh) + "</div></div>" +
+        '<div class="kpi"><div class="rotulo">Saldo de créditos</div><div class="valor">' + kwh(gd.saldo_creditos_kwh) + "</div></div>" +
+        "</div>" + (gd.explicacao ? '<p style="margin:14px 0 0">' + escapar(gd.explicacao) + "</p>" : "") + "</section>";
+    }
+
+    if (Array.isArray(d.itens) && d.itens.length) {
+      html += '<section class="cartao"><h2>O que você está pagando</h2>' +
+        d.itens.map((i) =>
+          '<div class="item"><div class="item-topo"><span>' + escapar(i.descricao) + '</span><span class="v">' + reais(i.valor) +
+          "</span></div>" + (i.explicacao ? "<p>" + escapar(i.explicacao) + "</p>" : "") + "</div>"
+        ).join("") + "</section>";
+    }
+
+    const hist = Array.isArray(d.historico) ? d.historico.filter((h) => typeof h.consumo_kwh === "number") : [];
+    if (hist.length > 1) {
+      const max = Math.max(...hist.map((h) => h.consumo_kwh)) || 1;
+      html += '<section class="cartao"><h2>Histórico de consumo</h2><div class="grafico">' +
+        hist.map((h, idx) =>
+          '<div class="barra' + (idx === 0 ? " atual" : "") + '" title="' + escapar(h.mes) + ": " + h.consumo_kwh + ' kWh">' +
+          '<div class="n">' + h.consumo_kwh + '</div><div class="b" style="height:' + Math.max(3, (h.consumo_kwh / max) * 100) + '%"></div>' +
+          '<div class="m">' + escapar(h.mes) + "</div></div>"
+        ).join("") + "</div></section>";
+    }
+
+    html += '<div class="botoes"><button class="botao secundario" id="btnNova">Analisar outra conta</button></div>';
+
+    $("resultado").innerHTML = html;
+    $("resultado").style.display = "block";
+    $("btnNova").onclick = () => {
+      $("resultado").style.display = "none";
+      $("previa").innerHTML = "";
+      arquivoPronto = null;
+      $("btnAnalisar").disabled = true;
+      $("inputFoto").value = ""; $("inputArquivo").value = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    $("resultado").scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Modo demonstração: abra o site com ?demo no fim do endereço para ver um exemplo sem gastar API
+  if (location.search.includes("demo")) {
+    mostrarResultado({
+      legivel: true, distribuidora: "Equatorial Goiás", unidade_consumidora: "1234567", mes_referencia: "08/2026",
+      vencimento: "15/09/2026", valor_total: 142.37, consumo_kwh: 410, classe: "Residencial", tipo_ligacao: "Bifásico",
+      resumo: "Sua casa consumiu 410 kWh em agosto. A energia solar cobriu 360 kWh, então você pagou pouca energia. A maior parte da conta é iluminação pública, impostos e a parcela do Fio B sobre a energia compensada.",
+      itens: [
+        { descricao: "Consumo TUSD", valor: 21.10, explicacao: "Uso da rede da distribuidora para trazer energia até sua casa." },
+        { descricao: "Consumo TE", valor: 17.85, explicacao: "A energia que você usou e que não foi coberta pelos créditos solares." },
+        { descricao: "Fio B (Lei 14.300)", valor: 38.40, explicacao: "Parte da tarifa de rede cobrada sobre a energia compensada. Em 2026 é 60% do Fio B." },
+        { descricao: "Contrib. Ilum. Pública", valor: 28.02, explicacao: "Taxa da prefeitura. A distribuidora só repassa." },
+        { descricao: "ICMS / PIS / COFINS", valor: 37.00, explicacao: "Impostos estaduais e federais sobre a conta." },
+      ],
+      geracao_distribuida: { possui: true, energia_injetada_kwh: 520, energia_compensada_kwh: 360, saldo_creditos_kwh: 1340,
+        explicacao: "Seu sistema mandou 520 kWh para a rede. 360 kWh foram usados para abater seu consumo e o restante virou crédito, que vale por 60 meses." },
+      historico: [
+        { mes: "AGO/26", consumo_kwh: 410 }, { mes: "JUL/26", consumo_kwh: 380 }, { mes: "JUN/26", consumo_kwh: 395 },
+        { mes: "MAI/26", consumo_kwh: 430 }, { mes: "ABR/26", consumo_kwh: 470 }, { mes: "MAR/26", consumo_kwh: 505 },
+      ],
+      alertas: ["Saldo de créditos alto (1.340 kWh). Vale avaliar se o sistema está superdimensionado ou transferir créditos para outra unidade."],
+    });
+  }
+})();
+</script>
+</body>
+</html>

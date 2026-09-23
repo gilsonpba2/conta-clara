@@ -1,0 +1,8 @@
+{
+  "name": "conta-clara",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Conta Clara — explica a fatura de energia a partir de uma foto ou PDF",
+  "engines": { "node": ">=18" }
+}
