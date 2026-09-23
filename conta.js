@@ -75,7 +75,7 @@ async function excluir(req, res) {
   }
   const ucs = (await redis("SMEMBERS", `ucs:${email}`)) || [];
   await redisVarios([
-    ["DEL", `usuario:${email}`, `creditos:${email}`, `analises:${email}`, `ucs:${email}`, ...ucs.map((uc) => `gd:${email}:${uc}`)],
+    ["DEL", `usuario:${email}`, `creditos:${email}`, `analises:${email}`, `ucs:${email}`, ...ucs.flatMap((uc) => [`gd:${email}:${uc}`, `ga:${email}:${uc}`, `gainfo:${email}:${uc}`])],
     ["SREM", "usuarios", email],
   ]);
   return res.status(200).json({ ok: true });
